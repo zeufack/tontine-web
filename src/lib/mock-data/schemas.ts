@@ -122,18 +122,27 @@ export const cycleSchema = z.object({
 });
 export type Cycle = z.infer<typeof cycleSchema>;
 
+// Matches the real backend's ContributionMethod enum (see DESIGN.md §9) —
+// mobile money is generic (no MTN/Orange-specific value; that distinction
+// would need to live in the free-form paymentDetails field if ever needed).
 export const contributionMethodSchema = z.enum([
-	"mtn_money",
-	"orange_money",
+	"mobile_money",
 	"bank_transfer",
 	"cash",
+	"credit_card",
+	"digital_wallet",
+	"other",
 ]);
 export type ContributionMethod = z.infer<typeof contributionMethodSchema>;
 
+// Matches the real backend's ContributionStatus enum (see DESIGN.md §11) —
+// two more terminal states than originally assumed.
 export const contributionStatusSchema = z.enum([
 	"pending",
 	"validated",
 	"rejected",
+	"failed",
+	"refunded",
 ]);
 export type ContributionStatus = z.infer<typeof contributionStatusSchema>;
 

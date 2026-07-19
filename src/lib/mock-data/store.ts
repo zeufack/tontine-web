@@ -16,8 +16,7 @@ faker.seed(42);
 export const CURRENT_USER_ID = "user-current";
 
 const CONTRIBUTION_METHODS: ContributionMethod[] = [
-	"mtn_money",
-	"orange_money",
+	"mobile_money",
 	"bank_transfer",
 	"cash",
 ];
@@ -138,23 +137,37 @@ const cycleHistory: Cycle[] = tontines.map((tontine) => ({
 	strategyState: buildStrategyState(tontine),
 }));
 
+const CONTRIBUTION_STATUS_BY_INDEX: Contribution["status"][] = [
+	"pending",
+	"validated",
+	"validated",
+	"rejected",
+];
+
 const contributions: Contribution[] = tontines.flatMap((tontine) => {
 	const cycle = cycles.find((c) => c.tontineId === tontine.id);
 	if (!cycle) return [];
 	const peers = membersOf(tontine.id);
-	return peers.slice(0, 3).map((member, index) => ({
-		id: faker.string.uuid(),
-		tontineId: tontine.id,
-		cycleId: cycle.id,
-		memberId: member.id,
-		amount: tontine.contributionAmount,
-		method: CONTRIBUTION_METHODS[index % CONTRIBUTION_METHODS.length],
-		status: index === 0 ? "pending" : "validated",
-		reference: faker.string.alphanumeric(10).toUpperCase(),
-		submittedAt: faker.date.recent({ days: 10 }).toISOString(),
-		resolvedAt:
-			index === 0 ? undefined : faker.date.recent({ days: 5 }).toISOString(),
-	}));
+	return peers.slice(0, 4).map((member, index) => {
+		const status = CONTRIBUTION_STATUS_BY_INDEX[index];
+		return {
+			id: faker.string.uuid(),
+			tontineId: tontine.id,
+			cycleId: cycle.id,
+			memberId: member.id,
+			amount: tontine.contributionAmount,
+			method: CONTRIBUTION_METHODS[index % CONTRIBUTION_METHODS.length],
+			status,
+			reference: faker.string.alphanumeric(10).toUpperCase(),
+			submittedAt: faker.date.recent({ days: 10 }).toISOString(),
+			resolvedAt:
+				status === "pending"
+					? undefined
+					: faker.date.recent({ days: 5 }).toISOString(),
+			resolutionNote:
+				status === "rejected" ? "Reference number doesn't match." : undefined,
+		};
+	});
 });
 
 const profiles: Record<string, UserProfile> = {
