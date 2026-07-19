@@ -212,5 +212,19 @@
   "members_table_joined": "Depuis le",
   "members_table_streak": "Régularité",
   "members_table_actions": "Actions",
-  "members_streak_value": "{count} cycles"
+  "members_streak_value": "{count} cycles",
+
+  "profile_title": "Profil",
+  "profile_personal_info_title": "Informations personnelles",
+  "profile_name_label": "Nom",
+  "profile_email_label": "E-mail",
+  "profile_save_cta": "Enregistrer",
+  "profile_save_success": "Profil mis à jour.",
+  "profile_locale_title": "Langue",
+  "profile_locale_description": "Choisissez la langue d'affichage de l'application.",
+  "profile_mobile_money_title": "Numéros mobile money",
+  "profile_mobile_money_display_only_note": "Affichage seul — aucun paiement n'est traité depuis cette page.",
+  "profile_mobile_money_empty": "Aucun numéro enregistré.",
+  "mobile_money_provider_mtn_money": "MTN Mobile Money",
+  "mobile_money_provider_orange_money": "Orange Money"
 }

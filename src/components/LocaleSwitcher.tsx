@@ -2,46 +2,46 @@
 // - Paraglide docs: https://inlang.com/m/gerre34r/library-inlang-paraglideJs
 // - Router example: https://github.com/TanStack/router/tree/main/examples/react/i18n-paraglide#switching-locale
 
+import { cn } from "#/lib/utils.ts";
 import { m } from "#/paraglide/messages";
 import { getLocale, locales, setLocale } from "#/paraglide/runtime";
 
-export default function ParaglideLocaleSwitcher() {
+type Locale = (typeof locales)[number];
+
+export default function ParaglideLocaleSwitcher({
+	onLocaleChange,
+}: {
+	onLocaleChange?: (locale: Locale) => void;
+}) {
 	const currentLocale = getLocale();
 
 	return (
-		<div
-			style={{
-				display: "flex",
-				gap: "0.5rem",
-				alignItems: "center",
-				color: "inherit",
-			}}
-			aria-label={m.language_label()}
-		>
-			<span style={{ opacity: 0.85 }}>
+		<fieldset className="flex items-center gap-2 border-0 p-0 m-0">
+			<legend className="sr-only">{m.language_label()}</legend>
+			<span className="text-sm text-muted-foreground">
 				{m.current_locale({ locale: currentLocale })}
 			</span>
-			<div style={{ display: "flex", gap: "0.25rem" }}>
+			<div className="flex gap-1">
 				{locales.map((locale) => (
 					<button
 						key={locale}
-						onClick={() => setLocale(locale)}
-						aria-pressed={locale === currentLocale}
-						style={{
-							cursor: "pointer",
-							padding: "0.35rem 0.75rem",
-							borderRadius: "999px",
-							border: "1px solid #d1d5db",
-							background: locale === currentLocale ? "#0f172a" : "transparent",
-							color: locale === currentLocale ? "#f8fafc" : "inherit",
-							fontWeight: locale === currentLocale ? 700 : 500,
-							letterSpacing: "0.01em",
+						type="button"
+						onClick={() => {
+							setLocale(locale);
+							onLocaleChange?.(locale);
 						}}
+						aria-pressed={locale === currentLocale}
+						className={cn(
+							"rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+							locale === currentLocale
+								? "border-primary bg-primary text-primary-foreground"
+								: "border-border bg-background text-foreground hover:bg-accent",
+						)}
 					>
 						{locale.toUpperCase()}
 					</button>
 				))}
 			</div>
-		</div>
+		</fieldset>
 	);
 }
