@@ -9,37 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StyleGuideRouteImport } from './routes/style-guide'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedUserAppRouteImport } from './routes/_authenticated/_userApp'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as StyleGuideRouteImport } from './routes/style-guide'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/_platformStaff'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AuthenticatedUserAppProfileRouteImport } from './routes/_authenticated/_userApp/profile'
+import { Route as AuthenticatedUserAppRouteImport } from './routes/_authenticated/_userApp'
 import { Route as AuthenticatedUserAppDashboardRouteImport } from './routes/_authenticated/_userApp/dashboard'
+import { Route as AuthenticatedUserAppProfileRouteImport } from './routes/_authenticated/_userApp/profile'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedPlatformStaffAdminIndexRouteImport } from './routes/_authenticated/_platformStaff/admin/index'
-import { Route as AuthenticatedUserAppTontinesNewRouteImport } from './routes/_authenticated/_userApp/tontines/new'
-import { Route as AuthenticatedUserAppTontinesTontineIdRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId'
-import { Route as AuthenticatedPlatformStaffAdminUsersRouteImport } from './routes/_authenticated/_platformStaff/admin/users'
 import { Route as AuthenticatedPlatformStaffAdminTontinesRouteImport } from './routes/_authenticated/_platformStaff/admin/tontines'
-import { Route as AuthenticatedUserAppTontinesTontineIdOverviewRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/overview'
-import { Route as AuthenticatedUserAppTontinesTontineIdMembersRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/members'
-import { Route as AuthenticatedUserAppTontinesTontineIdCyclesRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/cycles'
-import { Route as AuthenticatedUserAppTontinesTontineIdContributionsRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/contributions'
+import { Route as AuthenticatedPlatformStaffAdminUsersRouteImport } from './routes/_authenticated/_platformStaff/admin/users'
+import { Route as AuthenticatedUserAppTontinesTontineIdRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId'
+import { Route as AuthenticatedUserAppTontinesNewRouteImport } from './routes/_authenticated/_userApp/tontines/new'
 import { Route as AuthenticatedUserAppTontinesTontineIdAdminRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin'
-import { Route as AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
+import { Route as AuthenticatedUserAppTontinesTontineIdContributionsRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/contributions'
+import { Route as AuthenticatedUserAppTontinesTontineIdCyclesRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/cycles'
+import { Route as AuthenticatedUserAppTontinesTontineIdMembersRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/members'
+import { Route as AuthenticatedUserAppTontinesTontineIdOverviewRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/overview'
 import { Route as AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin/settings'
+import { Route as AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
 
-const StyleGuideRoute = StyleGuideRouteImport.update({
-  id: '/style-guide',
-  path: '/style-guide',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -47,63 +46,46 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const StyleGuideRoute = StyleGuideRouteImport.update({
+  id: '/style-guide',
+  path: '/style-guide',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedUserAppRoute = AuthenticatedUserAppRouteImport.update({
-  id: '/_userApp',
-  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPlatformStaffRoute =
   AuthenticatedPlatformStaffRouteImport.update({
     id: '/_platformStaff',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedUserAppRoute = AuthenticatedUserAppRouteImport.update({
+  id: '/_userApp',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedUserAppProfileRoute =
-  AuthenticatedUserAppProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
-    getParentRoute: () => AuthenticatedUserAppRoute,
-  } as any)
 const AuthenticatedUserAppDashboardRoute =
   AuthenticatedUserAppDashboardRouteImport.update({
     id: '/dashboard',
     path: '/dashboard',
     getParentRoute: () => AuthenticatedUserAppRoute,
   } as any)
+const AuthenticatedUserAppProfileRoute =
+  AuthenticatedUserAppProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPlatformStaffAdminIndexRoute =
   AuthenticatedPlatformStaffAdminIndexRouteImport.update({
     id: '/admin/',
     path: '/admin/',
-    getParentRoute: () => AuthenticatedPlatformStaffRoute,
-  } as any)
-const AuthenticatedUserAppTontinesNewRoute =
-  AuthenticatedUserAppTontinesNewRouteImport.update({
-    id: '/tontines/new',
-    path: '/tontines/new',
-    getParentRoute: () => AuthenticatedUserAppRoute,
-  } as any)
-const AuthenticatedUserAppTontinesTontineIdRoute =
-  AuthenticatedUserAppTontinesTontineIdRouteImport.update({
-    id: '/tontines/$tontineId',
-    path: '/tontines/$tontineId',
-    getParentRoute: () => AuthenticatedUserAppRoute,
-  } as any)
-const AuthenticatedPlatformStaffAdminUsersRoute =
-  AuthenticatedPlatformStaffAdminUsersRouteImport.update({
-    id: '/admin/users',
-    path: '/admin/users',
     getParentRoute: () => AuthenticatedPlatformStaffRoute,
   } as any)
 const AuthenticatedPlatformStaffAdminTontinesRoute =
@@ -112,22 +94,27 @@ const AuthenticatedPlatformStaffAdminTontinesRoute =
     path: '/admin/tontines',
     getParentRoute: () => AuthenticatedPlatformStaffRoute,
   } as any)
-const AuthenticatedUserAppTontinesTontineIdOverviewRoute =
-  AuthenticatedUserAppTontinesTontineIdOverviewRouteImport.update({
-    id: '/overview',
-    path: '/overview',
-    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+const AuthenticatedPlatformStaffAdminUsersRoute =
+  AuthenticatedPlatformStaffAdminUsersRouteImport.update({
+    id: '/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => AuthenticatedPlatformStaffRoute,
   } as any)
-const AuthenticatedUserAppTontinesTontineIdMembersRoute =
-  AuthenticatedUserAppTontinesTontineIdMembersRouteImport.update({
-    id: '/members',
-    path: '/members',
-    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+const AuthenticatedUserAppTontinesTontineIdRoute =
+  AuthenticatedUserAppTontinesTontineIdRouteImport.update({
+    id: '/tontines/$tontineId',
+    path: '/tontines/$tontineId',
+    getParentRoute: () => AuthenticatedUserAppRoute,
   } as any)
-const AuthenticatedUserAppTontinesTontineIdCyclesRoute =
-  AuthenticatedUserAppTontinesTontineIdCyclesRouteImport.update({
-    id: '/cycles',
-    path: '/cycles',
+const AuthenticatedUserAppTontinesNewRoute =
+  AuthenticatedUserAppTontinesNewRouteImport.update({
+    id: '/tontines/new',
+    path: '/tontines/new',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdAdminRoute =
+  AuthenticatedUserAppTontinesTontineIdAdminRouteImport.update({
+    id: '/_admin',
     getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
   } as any)
 const AuthenticatedUserAppTontinesTontineIdContributionsRoute =
@@ -136,21 +123,34 @@ const AuthenticatedUserAppTontinesTontineIdContributionsRoute =
     path: '/contributions',
     getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
   } as any)
-const AuthenticatedUserAppTontinesTontineIdAdminRoute =
-  AuthenticatedUserAppTontinesTontineIdAdminRouteImport.update({
-    id: '/_admin',
+const AuthenticatedUserAppTontinesTontineIdCyclesRoute =
+  AuthenticatedUserAppTontinesTontineIdCyclesRouteImport.update({
+    id: '/cycles',
+    path: '/cycles',
     getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
   } as any)
-const AuthenticatedUserAppTontinesTontineIdAdminValidationRoute =
-  AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport.update({
-    id: '/validation',
-    path: '/validation',
-    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdAdminRoute,
+const AuthenticatedUserAppTontinesTontineIdMembersRoute =
+  AuthenticatedUserAppTontinesTontineIdMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdOverviewRoute =
+  AuthenticatedUserAppTontinesTontineIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
   } as any)
 const AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute =
   AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdAdminRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdAdminValidationRoute =
+  AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport.update({
+    id: '/validation',
+    path: '/validation',
     getParentRoute: () => AuthenticatedUserAppTontinesTontineIdAdminRoute,
   } as any)
 
@@ -297,25 +297,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/style-guide': {
-      id: '/style-guide'
-      path: '/style-guide'
-      fullPath: '/style-guide'
-      preLoaderRoute: typeof StyleGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -325,19 +311,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/_userApp': {
-      id: '/_authenticated/_userApp'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedUserAppRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/style-guide': {
+      id: '/style-guide'
+      path: '/style-guide'
+      fullPath: '/style-guide'
+      preLoaderRoute: typeof StyleGuideRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/_platformStaff': {
       id: '/_authenticated/_platformStaff'
@@ -346,19 +339,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformStaffRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/_userApp/profile': {
-      id: '/_authenticated/_userApp/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedUserAppProfileRouteImport
-      parentRoute: typeof AuthenticatedUserAppRoute
+    '/_authenticated/_userApp': {
+      id: '/_authenticated/_userApp'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedUserAppRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/_userApp/dashboard': {
       id: '/_authenticated/_userApp/dashboard'
@@ -367,32 +353,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUserAppDashboardRouteImport
       parentRoute: typeof AuthenticatedUserAppRoute
     }
+    '/_authenticated/_userApp/profile': {
+      id: '/_authenticated/_userApp/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedUserAppProfileRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/_platformStaff/admin/': {
       id: '/_authenticated/_platformStaff/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedPlatformStaffAdminIndexRouteImport
-      parentRoute: typeof AuthenticatedPlatformStaffRoute
-    }
-    '/_authenticated/_userApp/tontines/new': {
-      id: '/_authenticated/_userApp/tontines/new'
-      path: '/tontines/new'
-      fullPath: '/tontines/new'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesNewRouteImport
-      parentRoute: typeof AuthenticatedUserAppRoute
-    }
-    '/_authenticated/_userApp/tontines/$tontineId': {
-      id: '/_authenticated/_userApp/tontines/$tontineId'
-      path: '/tontines/$tontineId'
-      fullPath: '/tontines/$tontineId'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdRouteImport
-      parentRoute: typeof AuthenticatedUserAppRoute
-    }
-    '/_authenticated/_platformStaff/admin/users': {
-      id: '/_authenticated/_platformStaff/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedPlatformStaffAdminUsersRouteImport
       parentRoute: typeof AuthenticatedPlatformStaffRoute
     }
     '/_authenticated/_platformStaff/admin/tontines': {
@@ -402,25 +381,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformStaffAdminTontinesRouteImport
       parentRoute: typeof AuthenticatedPlatformStaffRoute
     }
-    '/_authenticated/_userApp/tontines/$tontineId/overview': {
-      id: '/_authenticated/_userApp/tontines/$tontineId/overview'
-      path: '/overview'
-      fullPath: '/tontines/$tontineId/overview'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdOverviewRouteImport
-      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    '/_authenticated/_platformStaff/admin/users': {
+      id: '/_authenticated/_platformStaff/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedPlatformStaffRoute
     }
-    '/_authenticated/_userApp/tontines/$tontineId/members': {
-      id: '/_authenticated/_userApp/tontines/$tontineId/members'
-      path: '/members'
-      fullPath: '/tontines/$tontineId/members'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdMembersRouteImport
-      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    '/_authenticated/_userApp/tontines/$tontineId': {
+      id: '/_authenticated/_userApp/tontines/$tontineId'
+      path: '/tontines/$tontineId'
+      fullPath: '/tontines/$tontineId'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
     }
-    '/_authenticated/_userApp/tontines/$tontineId/cycles': {
-      id: '/_authenticated/_userApp/tontines/$tontineId/cycles'
-      path: '/cycles'
-      fullPath: '/tontines/$tontineId/cycles'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdCyclesRouteImport
+    '/_authenticated/_userApp/tontines/new': {
+      id: '/_authenticated/_userApp/tontines/new'
+      path: '/tontines/new'
+      fullPath: '/tontines/new'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesNewRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/_admin': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/_admin'
+      path: ''
+      fullPath: '/tontines/$tontineId'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRouteImport
       parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
     }
     '/_authenticated/_userApp/tontines/$tontineId/contributions': {
@@ -430,25 +416,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdContributionsRouteImport
       parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
     }
-    '/_authenticated/_userApp/tontines/$tontineId/_admin': {
-      id: '/_authenticated/_userApp/tontines/$tontineId/_admin'
-      path: ''
-      fullPath: '/tontines/$tontineId'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRouteImport
+    '/_authenticated/_userApp/tontines/$tontineId/cycles': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/cycles'
+      path: '/cycles'
+      fullPath: '/tontines/$tontineId/cycles'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdCyclesRouteImport
       parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
     }
-    '/_authenticated/_userApp/tontines/$tontineId/_admin/validation': {
-      id: '/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
-      path: '/validation'
-      fullPath: '/tontines/$tontineId/validation'
-      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport
-      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRoute
+    '/_authenticated/_userApp/tontines/$tontineId/members': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/members'
+      path: '/members'
+      fullPath: '/tontines/$tontineId/members'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdMembersRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/overview': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/overview'
+      path: '/overview'
+      fullPath: '/tontines/$tontineId/overview'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdOverviewRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
     }
     '/_authenticated/_userApp/tontines/$tontineId/_admin/settings': {
       id: '/_authenticated/_userApp/tontines/$tontineId/_admin/settings'
       path: '/settings'
       fullPath: '/tontines/$tontineId/settings'
       preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/_admin/validation': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
+      path: '/validation'
+      fullPath: '/tontines/$tontineId/validation'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport
       parentRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRoute
     }
   }
