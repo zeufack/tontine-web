@@ -71,7 +71,7 @@ function RegisterPage() {
 					phoneNumber: values.phoneNumber || undefined,
 				},
 			});
-			await navigate({ href: "/dashboard" });
+			await navigate({ href: "/app/home" });
 		} catch {
 			setSubmitError(m.register_error_generic());
 		}

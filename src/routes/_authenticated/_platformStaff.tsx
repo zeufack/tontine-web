@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/_platformStaff")({
 			overrideIsStaff: search.staff,
 		});
 		if (!status.isStaff) {
-			throw redirect({ to: "/dashboard", search: { unauthorized: true } });
+			throw redirect({ to: "/app/home", search: { unauthorized: true } });
 		}
 	},
 	component: AdminShell,

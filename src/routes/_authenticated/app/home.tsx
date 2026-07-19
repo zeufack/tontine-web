@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/_userApp/dashboard")({
+export const Route = createFileRoute("/_authenticated/app/home")({
 	validateSearch: (search: Record<string, unknown>) => ({
 		unauthorized: search.unauthorized === true,
 	}),
@@ -17,7 +17,7 @@ function DashboardPage() {
 		if (unauthorized) {
 			toast.error("You don't have access to that section.");
 			void navigate({
-				to: "/dashboard",
+				to: "/app/home",
 				search: { unauthorized: undefined },
 				replace: true,
 			});

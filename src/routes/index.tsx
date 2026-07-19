@@ -4,6 +4,6 @@ import { getCurrentSession } from "#/lib/get-session";
 export const Route = createFileRoute("/")({
 	beforeLoad: async () => {
 		const session = await getCurrentSession();
-		throw redirect({ to: session ? "/dashboard" : "/login" });
+		throw redirect({ to: session ? "/app/home" : "/login" });
 	},
 });

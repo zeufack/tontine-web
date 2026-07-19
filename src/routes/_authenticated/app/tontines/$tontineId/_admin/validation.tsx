@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-	"/_authenticated/_userApp/tontines/$tontineId/_admin/validation",
+	"/_authenticated/app/tontines/$tontineId/_admin/validation",
 )({
 	component: ValidationPage,
 });

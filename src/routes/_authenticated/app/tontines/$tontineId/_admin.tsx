@@ -1,12 +1,12 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-	"/_authenticated/_userApp/tontines/$tontineId/_admin",
+	"/_authenticated/app/tontines/$tontineId/_admin",
 )({
 	beforeLoad: ({ context, params }) => {
 		if (context.membership.role !== "admin") {
 			throw redirect({
-				to: "/tontines/$tontineId/overview",
+				to: "/app/tontines/$tontineId/overview",
 				params: { tontineId: params.tontineId },
 				search: { unauthorized: true },
 			});

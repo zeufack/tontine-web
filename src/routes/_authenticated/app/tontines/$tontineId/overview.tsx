@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute(
-	"/_authenticated/_userApp/tontines/$tontineId/overview",
+	"/_authenticated/app/tontines/$tontineId/overview",
 )({
 	validateSearch: (search: Record<string, unknown>) => ({
 		unauthorized: search.unauthorized === true,
@@ -20,7 +20,7 @@ function OverviewPage() {
 		if (unauthorized) {
 			toast.error("You don't have access to that section.");
 			void navigate({
-				to: "/tontines/$tontineId/overview",
+				to: "/app/tontines/$tontineId/overview",
 				params: { tontineId },
 				search: { unauthorized: undefined },
 				replace: true,

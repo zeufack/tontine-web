@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-	"/_authenticated/_userApp/tontines/$tontineId/contributions",
+	"/_authenticated/app/tontines/$tontineId/contributions",
 )({
 	component: ContributionsPage,
 });

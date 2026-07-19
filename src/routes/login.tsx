@@ -23,7 +23,7 @@ function sanitizeRedirect(value: unknown): string {
 		!value.startsWith("/") ||
 		value.startsWith("//")
 	) {
-		return "/dashboard";
+		return "/app/home";
 	}
 	return value;
 }
