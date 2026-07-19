@@ -18,7 +18,6 @@ import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authen
 import { Route as AuthenticatedUserAppRouteImport } from './routes/_authenticated/_userApp'
 import { Route as AuthenticatedUserAppDashboardRouteImport } from './routes/_authenticated/_userApp/dashboard'
 import { Route as AuthenticatedUserAppProfileRouteImport } from './routes/_authenticated/_userApp/profile'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedPlatformStaffAdminIndexRouteImport } from './routes/_authenticated/_platformStaff/admin/index'
 import { Route as AuthenticatedPlatformStaffAdminTontinesRouteImport } from './routes/_authenticated/_platformStaff/admin/tontines'
 import { Route as AuthenticatedPlatformStaffAdminUsersRouteImport } from './routes/_authenticated/_platformStaff/admin/users'
@@ -77,11 +76,6 @@ const AuthenticatedUserAppProfileRoute =
     path: '/profile',
     getParentRoute: () => AuthenticatedUserAppRoute,
   } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedPlatformStaffAdminIndexRoute =
   AuthenticatedPlatformStaffAdminIndexRouteImport.update({
     id: '/admin/',
@@ -161,7 +155,6 @@ export interface FileRoutesByFullPath {
   '/style-guide': typeof StyleGuideRoute
   '/dashboard': typeof AuthenticatedUserAppDashboardRoute
   '/profile': typeof AuthenticatedUserAppProfileRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
   '/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
@@ -181,7 +174,6 @@ export interface FileRoutesByTo {
   '/style-guide': typeof StyleGuideRoute
   '/dashboard': typeof AuthenticatedUserAppDashboardRoute
   '/profile': typeof AuthenticatedUserAppProfileRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
   '/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
@@ -205,7 +197,6 @@ export interface FileRoutesById {
   '/_authenticated/_userApp': typeof AuthenticatedUserAppRouteWithChildren
   '/_authenticated/_userApp/dashboard': typeof AuthenticatedUserAppDashboardRoute
   '/_authenticated/_userApp/profile': typeof AuthenticatedUserAppProfileRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authenticated/_platformStaff/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/_authenticated/_platformStaff/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
   '/_authenticated/_userApp/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
@@ -228,7 +219,6 @@ export interface FileRouteTypes {
     | '/style-guide'
     | '/dashboard'
     | '/profile'
-    | '/api/auth/$'
     | '/admin/tontines'
     | '/admin/users'
     | '/tontines/$tontineId'
@@ -248,7 +238,6 @@ export interface FileRouteTypes {
     | '/style-guide'
     | '/dashboard'
     | '/profile'
-    | '/api/auth/$'
     | '/admin/tontines'
     | '/admin/users'
     | '/tontines/$tontineId'
@@ -271,7 +260,6 @@ export interface FileRouteTypes {
     | '/_authenticated/_userApp'
     | '/_authenticated/_userApp/dashboard'
     | '/_authenticated/_userApp/profile'
-    | '/api/auth/$'
     | '/_authenticated/_platformStaff/admin/tontines'
     | '/_authenticated/_platformStaff/admin/users'
     | '/_authenticated/_userApp/tontines/$tontineId'
@@ -292,7 +280,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   StyleGuideRoute: typeof StyleGuideRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -359,13 +346,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedUserAppProfileRouteImport
       parentRoute: typeof AuthenticatedUserAppRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/_platformStaff/admin/': {
       id: '/_authenticated/_platformStaff/admin/'
@@ -558,7 +538,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   StyleGuideRoute: StyleGuideRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

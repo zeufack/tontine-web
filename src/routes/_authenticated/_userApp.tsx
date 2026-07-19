@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import BetterAuthHeader from "#/integrations/better-auth/header-user";
+import SessionHeader from "#/integrations/session/header-user";
 
 export const Route = createFileRoute("/_authenticated/_userApp")({
 	component: UserAppShell,
@@ -13,7 +13,7 @@ function UserAppShell() {
 					<Link to="/dashboard">Dashboard</Link>
 					<Link to="/profile">Profile</Link>
 				</nav>
-				<BetterAuthHeader />
+				<SessionHeader />
 			</header>
 			<main>
 				<Outlet />
