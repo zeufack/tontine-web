@@ -5,5 +5,26 @@
   "example_message": "Bienvenue dans votre application i18n.",
   "language_label": "Langue",
   "current_locale": "Langue actuelle : {locale}",
-  "learn_router": "Découvrir Paraglide JS"
+  "learn_router": "Découvrir Paraglide JS",
+
+  "login_title": "Connexion",
+  "login_email_label": "E-mail",
+  "login_password_label": "Mot de passe",
+  "login_submit_cta": "Se connecter",
+  "login_error_invalid_credentials": "E-mail ou mot de passe incorrect.",
+
+  "register_title": "Créer un compte",
+  "register_email_label": "E-mail",
+  "register_password_label": "Mot de passe",
+  "register_confirm_password_label": "Confirmer le mot de passe",
+  "register_first_name_label": "Prénom",
+  "register_last_name_label": "Nom",
+  "register_phone_label": "Numéro de téléphone (facultatif)",
+  "register_submit_cta": "Créer le compte",
+  "register_error_generic": "L'inscription a échoué. Veuillez réessayer.",
+
+  "validation_required": "Ce champ est obligatoire.",
+  "validation_invalid_email": "Saisissez une adresse e-mail valide.",
+  "validation_password_too_short": "Le mot de passe doit contenir au moins {minLength} caractères.",
+  "validation_passwords_dont_match": "Les mots de passe ne correspondent pas."
 }
