@@ -10,12 +10,45 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StyleGuideRouteImport } from './routes/style-guide'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedUserAppRouteImport } from './routes/_authenticated/_userApp'
+import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/_platformStaff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthenticatedUserAppProfileRouteImport } from './routes/_authenticated/_userApp/profile'
+import { Route as AuthenticatedUserAppDashboardRouteImport } from './routes/_authenticated/_userApp/dashboard'
+import { Route as AuthenticatedPlatformStaffAdminIndexRouteImport } from './routes/_authenticated/_platformStaff/admin/index'
+import { Route as AuthenticatedUserAppTontinesNewRouteImport } from './routes/_authenticated/_userApp/tontines/new'
+import { Route as AuthenticatedUserAppTontinesTontineIdRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId'
+import { Route as AuthenticatedPlatformStaffAdminUsersRouteImport } from './routes/_authenticated/_platformStaff/admin/users'
+import { Route as AuthenticatedPlatformStaffAdminTontinesRouteImport } from './routes/_authenticated/_platformStaff/admin/tontines'
+import { Route as AuthenticatedUserAppTontinesTontineIdOverviewRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/overview'
+import { Route as AuthenticatedUserAppTontinesTontineIdMembersRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/members'
+import { Route as AuthenticatedUserAppTontinesTontineIdCyclesRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/cycles'
+import { Route as AuthenticatedUserAppTontinesTontineIdContributionsRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/contributions'
+import { Route as AuthenticatedUserAppTontinesTontineIdAdminRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin'
+import { Route as AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
+import { Route as AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport } from './routes/_authenticated/_userApp/tontines/$tontineId/_admin/settings'
 
 const StyleGuideRoute = StyleGuideRouteImport.update({
   id: '/style-guide',
   path: '/style-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -23,38 +56,241 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedUserAppRoute = AuthenticatedUserAppRouteImport.update({
+  id: '/_userApp',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPlatformStaffRoute =
+  AuthenticatedPlatformStaffRouteImport.update({
+    id: '/_platformStaff',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedUserAppProfileRoute =
+  AuthenticatedUserAppProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const AuthenticatedUserAppDashboardRoute =
+  AuthenticatedUserAppDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const AuthenticatedPlatformStaffAdminIndexRoute =
+  AuthenticatedPlatformStaffAdminIndexRouteImport.update({
+    id: '/admin/',
+    path: '/admin/',
+    getParentRoute: () => AuthenticatedPlatformStaffRoute,
+  } as any)
+const AuthenticatedUserAppTontinesNewRoute =
+  AuthenticatedUserAppTontinesNewRouteImport.update({
+    id: '/tontines/new',
+    path: '/tontines/new',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdRoute =
+  AuthenticatedUserAppTontinesTontineIdRouteImport.update({
+    id: '/tontines/$tontineId',
+    path: '/tontines/$tontineId',
+    getParentRoute: () => AuthenticatedUserAppRoute,
+  } as any)
+const AuthenticatedPlatformStaffAdminUsersRoute =
+  AuthenticatedPlatformStaffAdminUsersRouteImport.update({
+    id: '/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => AuthenticatedPlatformStaffRoute,
+  } as any)
+const AuthenticatedPlatformStaffAdminTontinesRoute =
+  AuthenticatedPlatformStaffAdminTontinesRouteImport.update({
+    id: '/admin/tontines',
+    path: '/admin/tontines',
+    getParentRoute: () => AuthenticatedPlatformStaffRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdOverviewRoute =
+  AuthenticatedUserAppTontinesTontineIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdMembersRoute =
+  AuthenticatedUserAppTontinesTontineIdMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdCyclesRoute =
+  AuthenticatedUserAppTontinesTontineIdCyclesRouteImport.update({
+    id: '/cycles',
+    path: '/cycles',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdContributionsRoute =
+  AuthenticatedUserAppTontinesTontineIdContributionsRouteImport.update({
+    id: '/contributions',
+    path: '/contributions',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdAdminRoute =
+  AuthenticatedUserAppTontinesTontineIdAdminRouteImport.update({
+    id: '/_admin',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdAdminValidationRoute =
+  AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport.update({
+    id: '/validation',
+    path: '/validation',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdAdminRoute,
+  } as any)
+const AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute =
+  AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedUserAppTontinesTontineIdAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
+  '/dashboard': typeof AuthenticatedUserAppDashboardRoute
+  '/profile': typeof AuthenticatedUserAppProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
+  '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
+  '/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
+  '/tontines/new': typeof AuthenticatedUserAppTontinesNewRoute
+  '/admin/': typeof AuthenticatedPlatformStaffAdminIndexRoute
+  '/tontines/$tontineId/contributions': typeof AuthenticatedUserAppTontinesTontineIdContributionsRoute
+  '/tontines/$tontineId/cycles': typeof AuthenticatedUserAppTontinesTontineIdCyclesRoute
+  '/tontines/$tontineId/members': typeof AuthenticatedUserAppTontinesTontineIdMembersRoute
+  '/tontines/$tontineId/overview': typeof AuthenticatedUserAppTontinesTontineIdOverviewRoute
+  '/tontines/$tontineId/settings': typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute
+  '/tontines/$tontineId/validation': typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
+  '/dashboard': typeof AuthenticatedUserAppDashboardRoute
+  '/profile': typeof AuthenticatedUserAppProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
+  '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
+  '/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
+  '/tontines/new': typeof AuthenticatedUserAppTontinesNewRoute
+  '/admin': typeof AuthenticatedPlatformStaffAdminIndexRoute
+  '/tontines/$tontineId/contributions': typeof AuthenticatedUserAppTontinesTontineIdContributionsRoute
+  '/tontines/$tontineId/cycles': typeof AuthenticatedUserAppTontinesTontineIdCyclesRoute
+  '/tontines/$tontineId/members': typeof AuthenticatedUserAppTontinesTontineIdMembersRoute
+  '/tontines/$tontineId/overview': typeof AuthenticatedUserAppTontinesTontineIdOverviewRoute
+  '/tontines/$tontineId/settings': typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute
+  '/tontines/$tontineId/validation': typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
+  '/_authenticated/_platformStaff': typeof AuthenticatedPlatformStaffRouteWithChildren
+  '/_authenticated/_userApp': typeof AuthenticatedUserAppRouteWithChildren
+  '/_authenticated/_userApp/dashboard': typeof AuthenticatedUserAppDashboardRoute
+  '/_authenticated/_userApp/profile': typeof AuthenticatedUserAppProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_authenticated/_platformStaff/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
+  '/_authenticated/_platformStaff/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
+  '/_authenticated/_userApp/tontines/$tontineId': typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
+  '/_authenticated/_userApp/tontines/new': typeof AuthenticatedUserAppTontinesNewRoute
+  '/_authenticated/_platformStaff/admin/': typeof AuthenticatedPlatformStaffAdminIndexRoute
+  '/_authenticated/_userApp/tontines/$tontineId/_admin': typeof AuthenticatedUserAppTontinesTontineIdAdminRouteWithChildren
+  '/_authenticated/_userApp/tontines/$tontineId/contributions': typeof AuthenticatedUserAppTontinesTontineIdContributionsRoute
+  '/_authenticated/_userApp/tontines/$tontineId/cycles': typeof AuthenticatedUserAppTontinesTontineIdCyclesRoute
+  '/_authenticated/_userApp/tontines/$tontineId/members': typeof AuthenticatedUserAppTontinesTontineIdMembersRoute
+  '/_authenticated/_userApp/tontines/$tontineId/overview': typeof AuthenticatedUserAppTontinesTontineIdOverviewRoute
+  '/_authenticated/_userApp/tontines/$tontineId/_admin/settings': typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute
+  '/_authenticated/_userApp/tontines/$tontineId/_admin/validation': typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/style-guide' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/style-guide'
+    | '/dashboard'
+    | '/profile'
+    | '/api/auth/$'
+    | '/admin/tontines'
+    | '/admin/users'
+    | '/tontines/$tontineId'
+    | '/tontines/new'
+    | '/admin/'
+    | '/tontines/$tontineId/contributions'
+    | '/tontines/$tontineId/cycles'
+    | '/tontines/$tontineId/members'
+    | '/tontines/$tontineId/overview'
+    | '/tontines/$tontineId/settings'
+    | '/tontines/$tontineId/validation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/style-guide' | '/api/auth/$'
-  id: '__root__' | '/' | '/style-guide' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/style-guide'
+    | '/dashboard'
+    | '/profile'
+    | '/api/auth/$'
+    | '/admin/tontines'
+    | '/admin/users'
+    | '/tontines/$tontineId'
+    | '/tontines/new'
+    | '/admin'
+    | '/tontines/$tontineId/contributions'
+    | '/tontines/$tontineId/cycles'
+    | '/tontines/$tontineId/members'
+    | '/tontines/$tontineId/overview'
+    | '/tontines/$tontineId/settings'
+    | '/tontines/$tontineId/validation'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/register'
+    | '/style-guide'
+    | '/_authenticated/_platformStaff'
+    | '/_authenticated/_userApp'
+    | '/_authenticated/_userApp/dashboard'
+    | '/_authenticated/_userApp/profile'
+    | '/api/auth/$'
+    | '/_authenticated/_platformStaff/admin/tontines'
+    | '/_authenticated/_platformStaff/admin/users'
+    | '/_authenticated/_userApp/tontines/$tontineId'
+    | '/_authenticated/_userApp/tontines/new'
+    | '/_authenticated/_platformStaff/admin/'
+    | '/_authenticated/_userApp/tontines/$tontineId/_admin'
+    | '/_authenticated/_userApp/tontines/$tontineId/contributions'
+    | '/_authenticated/_userApp/tontines/$tontineId/cycles'
+    | '/_authenticated/_userApp/tontines/$tontineId/members'
+    | '/_authenticated/_userApp/tontines/$tontineId/overview'
+    | '/_authenticated/_userApp/tontines/$tontineId/_admin/settings'
+    | '/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
   StyleGuideRoute: typeof StyleGuideRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -68,12 +304,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StyleGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_userApp': {
+      id: '/_authenticated/_userApp'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedUserAppRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_platformStaff': {
+      id: '/_authenticated/_platformStaff'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -82,11 +353,210 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/_userApp/profile': {
+      id: '/_authenticated/_userApp/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedUserAppProfileRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/_authenticated/_userApp/dashboard': {
+      id: '/_authenticated/_userApp/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedUserAppDashboardRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/_authenticated/_platformStaff/admin/': {
+      id: '/_authenticated/_platformStaff/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedPlatformStaffRoute
+    }
+    '/_authenticated/_userApp/tontines/new': {
+      id: '/_authenticated/_userApp/tontines/new'
+      path: '/tontines/new'
+      fullPath: '/tontines/new'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesNewRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId': {
+      id: '/_authenticated/_userApp/tontines/$tontineId'
+      path: '/tontines/$tontineId'
+      fullPath: '/tontines/$tontineId'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdRouteImport
+      parentRoute: typeof AuthenticatedUserAppRoute
+    }
+    '/_authenticated/_platformStaff/admin/users': {
+      id: '/_authenticated/_platformStaff/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedPlatformStaffRoute
+    }
+    '/_authenticated/_platformStaff/admin/tontines': {
+      id: '/_authenticated/_platformStaff/admin/tontines'
+      path: '/admin/tontines'
+      fullPath: '/admin/tontines'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffAdminTontinesRouteImport
+      parentRoute: typeof AuthenticatedPlatformStaffRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/overview': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/overview'
+      path: '/overview'
+      fullPath: '/tontines/$tontineId/overview'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdOverviewRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/members': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/members'
+      path: '/members'
+      fullPath: '/tontines/$tontineId/members'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdMembersRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/cycles': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/cycles'
+      path: '/cycles'
+      fullPath: '/tontines/$tontineId/cycles'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdCyclesRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/contributions': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/contributions'
+      path: '/contributions'
+      fullPath: '/tontines/$tontineId/contributions'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdContributionsRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/_admin': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/_admin'
+      path: ''
+      fullPath: '/tontines/$tontineId'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/_admin/validation': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/_admin/validation'
+      path: '/validation'
+      fullPath: '/tontines/$tontineId/validation'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRoute
+    }
+    '/_authenticated/_userApp/tontines/$tontineId/_admin/settings': {
+      id: '/_authenticated/_userApp/tontines/$tontineId/_admin/settings'
+      path: '/settings'
+      fullPath: '/tontines/$tontineId/settings'
+      preLoaderRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRoute
+    }
   }
 }
 
+interface AuthenticatedPlatformStaffRouteChildren {
+  AuthenticatedPlatformStaffAdminTontinesRoute: typeof AuthenticatedPlatformStaffAdminTontinesRoute
+  AuthenticatedPlatformStaffAdminUsersRoute: typeof AuthenticatedPlatformStaffAdminUsersRoute
+  AuthenticatedPlatformStaffAdminIndexRoute: typeof AuthenticatedPlatformStaffAdminIndexRoute
+}
+
+const AuthenticatedPlatformStaffRouteChildren: AuthenticatedPlatformStaffRouteChildren =
+  {
+    AuthenticatedPlatformStaffAdminTontinesRoute:
+      AuthenticatedPlatformStaffAdminTontinesRoute,
+    AuthenticatedPlatformStaffAdminUsersRoute:
+      AuthenticatedPlatformStaffAdminUsersRoute,
+    AuthenticatedPlatformStaffAdminIndexRoute:
+      AuthenticatedPlatformStaffAdminIndexRoute,
+  }
+
+const AuthenticatedPlatformStaffRouteWithChildren =
+  AuthenticatedPlatformStaffRoute._addFileChildren(
+    AuthenticatedPlatformStaffRouteChildren,
+  )
+
+interface AuthenticatedUserAppTontinesTontineIdAdminRouteChildren {
+  AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute
+  AuthenticatedUserAppTontinesTontineIdAdminValidationRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminValidationRoute
+}
+
+const AuthenticatedUserAppTontinesTontineIdAdminRouteChildren: AuthenticatedUserAppTontinesTontineIdAdminRouteChildren =
+  {
+    AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute:
+      AuthenticatedUserAppTontinesTontineIdAdminSettingsRoute,
+    AuthenticatedUserAppTontinesTontineIdAdminValidationRoute:
+      AuthenticatedUserAppTontinesTontineIdAdminValidationRoute,
+  }
+
+const AuthenticatedUserAppTontinesTontineIdAdminRouteWithChildren =
+  AuthenticatedUserAppTontinesTontineIdAdminRoute._addFileChildren(
+    AuthenticatedUserAppTontinesTontineIdAdminRouteChildren,
+  )
+
+interface AuthenticatedUserAppTontinesTontineIdRouteChildren {
+  AuthenticatedUserAppTontinesTontineIdAdminRoute: typeof AuthenticatedUserAppTontinesTontineIdAdminRouteWithChildren
+  AuthenticatedUserAppTontinesTontineIdContributionsRoute: typeof AuthenticatedUserAppTontinesTontineIdContributionsRoute
+  AuthenticatedUserAppTontinesTontineIdCyclesRoute: typeof AuthenticatedUserAppTontinesTontineIdCyclesRoute
+  AuthenticatedUserAppTontinesTontineIdMembersRoute: typeof AuthenticatedUserAppTontinesTontineIdMembersRoute
+  AuthenticatedUserAppTontinesTontineIdOverviewRoute: typeof AuthenticatedUserAppTontinesTontineIdOverviewRoute
+}
+
+const AuthenticatedUserAppTontinesTontineIdRouteChildren: AuthenticatedUserAppTontinesTontineIdRouteChildren =
+  {
+    AuthenticatedUserAppTontinesTontineIdAdminRoute:
+      AuthenticatedUserAppTontinesTontineIdAdminRouteWithChildren,
+    AuthenticatedUserAppTontinesTontineIdContributionsRoute:
+      AuthenticatedUserAppTontinesTontineIdContributionsRoute,
+    AuthenticatedUserAppTontinesTontineIdCyclesRoute:
+      AuthenticatedUserAppTontinesTontineIdCyclesRoute,
+    AuthenticatedUserAppTontinesTontineIdMembersRoute:
+      AuthenticatedUserAppTontinesTontineIdMembersRoute,
+    AuthenticatedUserAppTontinesTontineIdOverviewRoute:
+      AuthenticatedUserAppTontinesTontineIdOverviewRoute,
+  }
+
+const AuthenticatedUserAppTontinesTontineIdRouteWithChildren =
+  AuthenticatedUserAppTontinesTontineIdRoute._addFileChildren(
+    AuthenticatedUserAppTontinesTontineIdRouteChildren,
+  )
+
+interface AuthenticatedUserAppRouteChildren {
+  AuthenticatedUserAppDashboardRoute: typeof AuthenticatedUserAppDashboardRoute
+  AuthenticatedUserAppProfileRoute: typeof AuthenticatedUserAppProfileRoute
+  AuthenticatedUserAppTontinesTontineIdRoute: typeof AuthenticatedUserAppTontinesTontineIdRouteWithChildren
+  AuthenticatedUserAppTontinesNewRoute: typeof AuthenticatedUserAppTontinesNewRoute
+}
+
+const AuthenticatedUserAppRouteChildren: AuthenticatedUserAppRouteChildren = {
+  AuthenticatedUserAppDashboardRoute: AuthenticatedUserAppDashboardRoute,
+  AuthenticatedUserAppProfileRoute: AuthenticatedUserAppProfileRoute,
+  AuthenticatedUserAppTontinesTontineIdRoute:
+    AuthenticatedUserAppTontinesTontineIdRouteWithChildren,
+  AuthenticatedUserAppTontinesNewRoute: AuthenticatedUserAppTontinesNewRoute,
+}
+
+const AuthenticatedUserAppRouteWithChildren =
+  AuthenticatedUserAppRoute._addFileChildren(AuthenticatedUserAppRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRouteWithChildren
+  AuthenticatedUserAppRoute: typeof AuthenticatedUserAppRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRouteWithChildren,
+  AuthenticatedUserAppRoute: AuthenticatedUserAppRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
   StyleGuideRoute: StyleGuideRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

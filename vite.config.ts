@@ -15,6 +15,15 @@ const config = defineConfig({
       project: './project.inlang',
       outdir: './src/paraglide',
       strategy: ['url', 'baseLocale'],
+      urlPatterns: [
+        {
+          pattern: '/:path(.*)?',
+          localized: [
+            ['fr', '/fr/:path(.*)?'],
+            ['en', '/en/:path(.*)?'],
+          ],
+        },
+      ],
     }),
     tailwindcss(),
     tanstackStart(),

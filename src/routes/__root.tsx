@@ -18,8 +18,9 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	beforeLoad: async () => {
-		// Other redirect strategies are possible; see
-		// https://github.com/TanStack/router/tree/main/examples/react/i18n-paraglide#offline-redirect
+		// Locale-prefix redirects are handled server-side by src/server.ts
+		// (paraglideMiddleware) and by the router's rewrite option in
+		// src/router.tsx — this just keeps <html lang> in sync client-side.
 		if (typeof document !== "undefined") {
 			document.documentElement.setAttribute("lang", getLocale());
 		}

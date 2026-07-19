@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import TanstackQueryProvider, {
 	getContext,
 } from "./integrations/tanstack-query/root-provider";
+import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -16,6 +17,10 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+		rewrite: {
+			input: ({ url }) => deLocalizeUrl(url),
+			output: ({ url }) => localizeUrl(url),
+		},
 	});
 
 	setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });
