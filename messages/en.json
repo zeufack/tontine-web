@@ -26,5 +26,29 @@
   "validation_required": "This field is required.",
   "validation_invalid_email": "Enter a valid email address.",
   "validation_password_too_short": "Password must be at least {minLength} characters.",
-  "validation_passwords_dont_match": "Passwords don't match."
+  "validation_passwords_dont_match": "Passwords don't match.",
+
+  "nav_dashboard_link": "Dashboard",
+  "nav_profile_link": "Profile",
+  "tontine_switcher_label": "Your tontines",
+
+  "dashboard_title": "My tontines",
+  "dashboard_empty_title": "No tontines yet",
+  "dashboard_empty_description": "Create your first tontine to get started.",
+  "dashboard_empty_cta": "Create a tontine",
+  "dashboard_next_payout_label": "Next payout: {name}",
+  "dashboard_next_payout_unknown": "Next payout: TBD",
+  "dashboard_contribution_paid": "Paid",
+  "dashboard_contribution_pending": "Pending",
+  "dashboard_contribution_overdue": "Overdue",
+  "dashboard_view_details_cta": "View details",
+
+  "tontine_status_draft": "Draft",
+  "tontine_status_active": "Active",
+  "tontine_status_paused": "Paused",
+  "tontine_status_completed": "Completed",
+  "tontine_status_cancelled": "Cancelled",
+
+  "role_admin": "Admin",
+  "role_member": "Member"
 }

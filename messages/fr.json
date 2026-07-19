@@ -26,5 +26,29 @@
   "validation_required": "Ce champ est obligatoire.",
   "validation_invalid_email": "Saisissez une adresse e-mail valide.",
   "validation_password_too_short": "Le mot de passe doit contenir au moins {minLength} caractères.",
-  "validation_passwords_dont_match": "Les mots de passe ne correspondent pas."
+  "validation_passwords_dont_match": "Les mots de passe ne correspondent pas.",
+
+  "nav_dashboard_link": "Tableau de bord",
+  "nav_profile_link": "Profil",
+  "tontine_switcher_label": "Vos tontines",
+
+  "dashboard_title": "Mes tontines",
+  "dashboard_empty_title": "Aucune tontine pour l'instant",
+  "dashboard_empty_description": "Créez votre première tontine pour commencer.",
+  "dashboard_empty_cta": "Créer une tontine",
+  "dashboard_next_payout_label": "Prochain versement : {name}",
+  "dashboard_next_payout_unknown": "Prochain versement : à déterminer",
+  "dashboard_contribution_paid": "Payé",
+  "dashboard_contribution_pending": "En attente",
+  "dashboard_contribution_overdue": "En retard",
+  "dashboard_view_details_cta": "Voir les détails",
+
+  "tontine_status_draft": "Brouillon",
+  "tontine_status_active": "Active",
+  "tontine_status_paused": "En pause",
+  "tontine_status_completed": "Terminée",
+  "tontine_status_cancelled": "Annulée",
+
+  "role_admin": "Admin",
+  "role_member": "Membre"
 }

@@ -46,6 +46,7 @@ function makeTontine(
 		contributionAmount,
 		frequency: "monthly",
 		payoutStrategy,
+		status: "active",
 		createdAt: faker.date.past({ years: 1 }).toISOString(),
 	};
 }
@@ -253,6 +254,9 @@ export function createTontine(input: {
 		contributionAmount: input.contributionAmount,
 		frequency: input.frequency,
 		payoutStrategy: input.payoutStrategy,
+		// New tontines start as draft until activated (needs ≥2 participants —
+		// see PRD §9.2 J1), matching the real backend's lifecycle.
+		status: "draft",
 		createdAt: new Date().toISOString(),
 	};
 	tontines.push(tontine);

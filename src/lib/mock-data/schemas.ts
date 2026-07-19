@@ -14,6 +14,17 @@ export type Membership = z.infer<typeof membershipSchema>;
 export const tontineFrequencySchema = z.enum(["weekly", "biweekly", "monthly"]);
 export type TontineFrequency = z.infer<typeof tontineFrequencySchema>;
 
+// Matches the real backend's TontineStatus enum (see DESIGN.md §11) — richer
+// than a simple active/inactive flag.
+export const tontineStatusSchema = z.enum([
+	"draft",
+	"active",
+	"paused",
+	"completed",
+	"cancelled",
+]);
+export type TontineStatus = z.infer<typeof tontineStatusSchema>;
+
 export const tontineSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -21,6 +32,7 @@ export const tontineSchema = z.object({
 	contributionAmount: z.number().positive(),
 	frequency: tontineFrequencySchema,
 	payoutStrategy: payoutStrategySchema,
+	status: tontineStatusSchema,
 	createdAt: z.string(),
 });
 export type Tontine = z.infer<typeof tontineSchema>;

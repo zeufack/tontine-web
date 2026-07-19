@@ -14,10 +14,15 @@ import {
 
 export type TontineMembership = Membership;
 
+export type MyContributionStatus = "paid" | "pending" | "overdue";
+
 export interface TontineSummary {
 	tontine: Tontine;
 	membership: Membership;
 	potTotal: number;
+	/** Who receives the pot next, when derivable (rotating strategy only). */
+	nextBeneficiaryName?: string;
+	myContributionStatus: MyContributionStatus;
 }
 
 export async function listTontinesForUser(): Promise<TontineSummary[]> {
@@ -28,11 +33,36 @@ export async function listTontinesForUser(): Promise<TontineSummary[]> {
 		const tontine = findTontine(member.tontineId);
 		if (!tontine) return [];
 		const cycle = mockStore.cycles.find((c) => c.tontineId === tontine.id);
+
+		let nextBeneficiaryName: string | undefined;
+		if (cycle?.strategyState.kind === "rotating") {
+			nextBeneficiaryName = cycle.strategyState.order.find(
+				(entry) =>
+					entry.memberId === cycle.strategyState.currentBeneficiaryMemberId,
+			)?.name;
+		}
+
+		const myContribution = cycle
+			? mockStore.contributions.find(
+					(contribution) =>
+						contribution.cycleId === cycle.id &&
+						contribution.memberId === CURRENT_USER_ID,
+				)
+			: undefined;
+		const myContributionStatus: MyContributionStatus =
+			myContribution?.status === "validated"
+				? "paid"
+				: myContribution?.status === "pending"
+					? "pending"
+					: "overdue";
+
 		return [
 			{
 				tontine,
 				membership: { role: member.role },
 				potTotal: cycle?.potTotal ?? 0,
+				nextBeneficiaryName,
+				myContributionStatus,
 			},
 		];
 	});
