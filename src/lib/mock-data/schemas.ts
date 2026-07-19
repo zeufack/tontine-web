@@ -162,12 +162,24 @@ export const contributionSchema = z.object({
 });
 export type Contribution = z.infer<typeof contributionSchema>;
 
+// Matches the real backend's ParticipantStatus enum (see DESIGN.md §4/§5.6) —
+// richer than a simple active/removed flag; invites start "pending".
+export const participantStatusSchema = z.enum([
+	"pending",
+	"active",
+	"suspended",
+	"withdrawn",
+	"completed",
+]);
+export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
+
 export const memberSchema = z.object({
 	id: z.string(),
 	tontineId: z.string(),
 	name: z.string(),
 	email: z.string().email(),
 	role: membershipRoleSchema,
+	status: participantStatusSchema,
 	joinedAt: z.string(),
 	contributionStreak: z.number().int().nonnegative(),
 });

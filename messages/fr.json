@@ -188,5 +188,29 @@
   "bidding_history_empty": "Aucune enchère soumise.",
   "bidding_table_member": "Membre",
   "bidding_table_amount": "Montant",
-  "bidding_table_date": "Soumis le"
+  "bidding_table_date": "Soumis le",
+
+  "member_status_pending": "Invitation en attente",
+  "member_status_active": "Actif",
+  "member_status_suspended": "Suspendu",
+  "member_status_withdrawn": "Parti",
+  "member_status_completed": "Terminé",
+
+  "members_title": "Membres",
+  "members_invite_cta": "Inviter",
+  "members_invite_dialog_title": "Inviter un membre",
+  "members_invite_identifier_label": "E-mail",
+  "members_invite_submit_cta": "Envoyer l'invitation",
+  "members_promote_cta": "Promouvoir admin",
+  "members_remove_cta": "Retirer",
+  "members_remove_confirm_title": "Retirer ce membre ?",
+  "members_remove_confirm_description": "{name} n'aura plus accès à cette tontine. Cette action ne peut pas être annulée.",
+  "members_remove_confirm_cta": "Confirmer le retrait",
+  "members_table_member": "Membre",
+  "members_table_role": "Rôle",
+  "members_table_status": "Statut",
+  "members_table_joined": "Depuis le",
+  "members_table_streak": "Régularité",
+  "members_table_actions": "Actions",
+  "members_streak_value": "{count} cycles"
 }

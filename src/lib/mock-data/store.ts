@@ -5,6 +5,7 @@ import type {
 	Cycle,
 	Member,
 	MembershipRole,
+	ParticipantStatus,
 	PayoutStrategy,
 	Tontine,
 	UserProfile,
@@ -21,17 +22,31 @@ const CONTRIBUTION_METHODS: ContributionMethod[] = [
 	"cash",
 ];
 
-function makeMember(tontineId: string, role: MembershipRole): Member {
+function makeMember(
+	tontineId: string,
+	role: MembershipRole,
+	status: ParticipantStatus = "active",
+): Member {
 	return {
 		id: faker.string.uuid(),
 		tontineId,
 		name: faker.person.fullName(),
 		email: faker.internet.email(),
 		role,
+		status,
 		joinedAt: faker.date.past({ years: 1 }).toISOString(),
 		contributionStreak: faker.number.int({ min: 0, max: 12 }),
 	};
 }
+
+// A little status variety per seeded tontine so the Members screen's status
+// badge/sort has more than one value to demonstrate.
+const PEER_STATUS_BY_INDEX: ParticipantStatus[] = [
+	"active",
+	"active",
+	"pending",
+	"suspended",
+];
 
 function makeTontine(
 	name: string,
@@ -59,8 +74,8 @@ const tontines: Tontine[] = [
 ];
 
 const members: Member[] = tontines.flatMap((tontine, index) => {
-	const peers = Array.from({ length: 4 }, () =>
-		makeMember(tontine.id, "member"),
+	const peers = Array.from({ length: 4 }, (_, peerIndex) =>
+		makeMember(tontine.id, "member", PEER_STATUS_BY_INDEX[peerIndex]),
 	);
 	const currentUserMember: Member = {
 		id: CURRENT_USER_ID,
@@ -68,6 +83,7 @@ const members: Member[] = tontines.flatMap((tontine, index) => {
 		name: "Vous",
 		email: "you@example.com",
 		role: index === 0 ? "admin" : "member",
+		status: "active",
 		joinedAt: faker.date.past({ years: 1 }).toISOString(),
 		contributionStreak: faker.number.int({ min: 0, max: 12 }),
 	};
@@ -289,6 +305,7 @@ export function createTontine(input: {
 		name: "Vous",
 		email: "you@example.com",
 		role: "admin",
+		status: "active",
 		joinedAt: tontine.createdAt,
 		contributionStreak: 0,
 	};
@@ -336,6 +353,7 @@ export function inviteMember(tontineId: string, email: string): Member {
 		name: faker.person.fullName(),
 		email,
 		role: "member",
+		status: "pending",
 		joinedAt: new Date().toISOString(),
 		contributionStreak: 0,
 	};
