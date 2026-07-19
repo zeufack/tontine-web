@@ -1,11 +1,20 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { getTontineMembershipStub } from "#/features/tontines/api";
+import type { MembershipRole } from "#/lib/mock-data/schemas";
 
 export const Route = createFileRoute(
 	"/_authenticated/_userApp/tontines/$tontineId",
 )({
-	beforeLoad: async ({ params }) => ({
-		membership: await getTontineMembershipStub(params.tontineId),
+	validateSearch: (search: Record<string, unknown>) => ({
+		role:
+			search.role === "admin" || search.role === "member"
+				? (search.role as MembershipRole)
+				: undefined,
+	}),
+	beforeLoad: async ({ params, search }) => ({
+		membership: await getTontineMembershipStub(params.tontineId, {
+			overrideRole: search.role,
+		}),
 	}),
 	component: TontineShell,
 });

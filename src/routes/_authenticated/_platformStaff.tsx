@@ -7,8 +7,21 @@ import {
 import { getPlatformStaffStatusStub } from "#/features/platform-admin/api";
 
 export const Route = createFileRoute("/_authenticated/_platformStaff")({
-	beforeLoad: async () => {
-		const status = await getPlatformStaffStatusStub();
+	// TanStack Router auto-coerces query values that look like booleans (e.g.
+	// `?staff=false`), so both the raw string and the coerced boolean must be
+	// checked here.
+	validateSearch: (search: Record<string, unknown>) => ({
+		staff:
+			search.staff === "true" || search.staff === true
+				? true
+				: search.staff === "false" || search.staff === false
+					? false
+					: undefined,
+	}),
+	beforeLoad: async ({ search }) => {
+		const status = await getPlatformStaffStatusStub({
+			overrideIsStaff: search.staff,
+		});
 		if (!status.isStaff) {
 			throw redirect({ to: "/dashboard", search: { unauthorized: true } });
 		}
