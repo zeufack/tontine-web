@@ -81,6 +81,10 @@ export async function createTontine(input: {
 	contributionAmount: number;
 	frequency: Tontine["frequency"];
 	payoutStrategy: Tontine["payoutStrategy"];
+	durationType: Tontine["durationType"];
+	cycleCount?: number;
+	endDate?: string;
+	goalAmount?: number;
 }): Promise<Tontine> {
 	return simulateNetwork(createTontineInStore(input));
 }

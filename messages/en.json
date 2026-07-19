@@ -50,5 +50,56 @@
   "tontine_status_cancelled": "Cancelled",
 
   "role_admin": "Admin",
-  "role_member": "Member"
+  "role_member": "Member",
+
+  "wizard_step_basics": "Basics",
+  "wizard_step_strategy": "Strategy",
+  "wizard_step_invite": "Invite",
+  "wizard_step_review": "Review",
+  "wizard_back_cta": "Back",
+  "wizard_next_cta": "Next",
+  "wizard_submit_cta": "Create tontine",
+
+  "wizard_name_label": "Tontine name",
+  "wizard_currency_label": "Currency",
+  "wizard_contribution_amount_label": "Contribution amount",
+  "wizard_frequency_label": "Contribution frequency",
+  "wizard_duration_type_label": "Duration",
+  "wizard_cycle_count_label": "Number of cycles",
+  "wizard_end_date_label": "End date",
+  "wizard_goal_amount_label": "Goal amount",
+
+  "frequency_daily": "Daily",
+  "frequency_weekly": "Weekly",
+  "frequency_biweekly": "Every two weeks",
+  "frequency_monthly": "Monthly",
+  "frequency_quarterly": "Quarterly",
+  "frequency_yearly": "Yearly",
+  "frequency_custom": "Custom",
+
+  "duration_type_fixed_cycles": "Fixed number of cycles",
+  "duration_type_fixed_time": "Fixed end date",
+  "duration_type_open_ended": "Open-ended",
+  "duration_type_goal_based": "Until a goal amount is reached",
+
+  "wizard_strategy_step_title": "How should the pot be paid out?",
+  "strategy_rotating_title": "Rotating",
+  "strategy_rotating_description": "Every cycle, the pot goes to the next person in a fixed order — everyone gets their turn eventually, in the same sequence.",
+  "strategy_lottery_title": "Lottery",
+  "strategy_lottery_description": "Each cycle, a winner is drawn at random among eligible members — a fair, unpredictable way to decide who receives the pot next.",
+  "strategy_bidding_title": "Bidding",
+  "strategy_bidding_description": "Members bid for early access to the pot — the highest bidder receives it now, at a discount, and repays the full amount over time.",
+  "strategy_not_fully_live_note": "Not fully supported end-to-end yet — coming soon.",
+
+  "wizard_invite_step_title": "Invite members",
+  "wizard_invite_step_description": "Add the email of each person you want to invite. You can always invite more people later.",
+  "wizard_invite_email_label": "Email",
+  "wizard_invite_add_cta": "Add another",
+  "wizard_invite_remove_cta": "Remove",
+
+  "wizard_review_step_title": "Review",
+  "wizard_review_basics_heading": "Basics",
+  "wizard_review_strategy_heading": "Payout strategy",
+  "wizard_review_invites_heading": "Invited members",
+  "wizard_review_no_invites": "No members invited yet."
 }

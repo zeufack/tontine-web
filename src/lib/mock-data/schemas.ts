@@ -11,8 +11,30 @@ export const membershipSchema = z.object({
 });
 export type Membership = z.infer<typeof membershipSchema>;
 
-export const tontineFrequencySchema = z.enum(["weekly", "biweekly", "monthly"]);
+// Matches the real backend's ContributionFrequency enum (see DESIGN.md §11 —
+// note the backend has an inconsistency between a 3-value uppercase DTO enum
+// and this 7-value lowercase entity enum; this mock follows the entity one,
+// which is what GET responses and openapi.json actually use).
+export const tontineFrequencySchema = z.enum([
+	"daily",
+	"weekly",
+	"biweekly",
+	"monthly",
+	"quarterly",
+	"yearly",
+	"custom",
+]);
 export type TontineFrequency = z.infer<typeof tontineFrequencySchema>;
+
+// Matches the real backend's DurationType enum (PRD §9.2 J1) — a separate
+// concept from frequency: how the tontine's overall lifespan is bounded.
+export const durationTypeSchema = z.enum([
+	"fixed_cycles",
+	"fixed_time",
+	"open_ended",
+	"goal_based",
+]);
+export type DurationType = z.infer<typeof durationTypeSchema>;
 
 // Matches the real backend's TontineStatus enum (see DESIGN.md §11) — richer
 // than a simple active/inactive flag.
@@ -33,6 +55,11 @@ export const tontineSchema = z.object({
 	frequency: tontineFrequencySchema,
 	payoutStrategy: payoutStrategySchema,
 	status: tontineStatusSchema,
+	durationType: durationTypeSchema,
+	// Follow-up fields, relevant depending on durationType.
+	cycleCount: z.number().int().positive().optional(),
+	endDate: z.string().optional(),
+	goalAmount: z.number().positive().optional(),
 	createdAt: z.string(),
 });
 export type Tontine = z.infer<typeof tontineSchema>;

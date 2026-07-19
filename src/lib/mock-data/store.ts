@@ -47,6 +47,8 @@ function makeTontine(
 		frequency: "monthly",
 		payoutStrategy,
 		status: "active",
+		durationType: "fixed_cycles",
+		cycleCount: 12,
 		createdAt: faker.date.past({ years: 1 }).toISOString(),
 	};
 }
@@ -246,6 +248,10 @@ export function createTontine(input: {
 	contributionAmount: number;
 	frequency: Tontine["frequency"];
 	payoutStrategy: PayoutStrategy;
+	durationType: Tontine["durationType"];
+	cycleCount?: number;
+	endDate?: string;
+	goalAmount?: number;
 }): Tontine {
 	const tontine: Tontine = {
 		id: faker.string.uuid(),
@@ -254,6 +260,10 @@ export function createTontine(input: {
 		contributionAmount: input.contributionAmount,
 		frequency: input.frequency,
 		payoutStrategy: input.payoutStrategy,
+		durationType: input.durationType,
+		cycleCount: input.cycleCount,
+		endDate: input.endDate,
+		goalAmount: input.goalAmount,
 		// New tontines start as draft until activated (needs ≥2 participants —
 		// see PRD §9.2 J1), matching the real backend's lifecycle.
 		status: "draft",

@@ -50,5 +50,56 @@
   "tontine_status_cancelled": "Annulée",
 
   "role_admin": "Admin",
-  "role_member": "Membre"
+  "role_member": "Membre",
+
+  "wizard_step_basics": "Informations de base",
+  "wizard_step_strategy": "Stratégie",
+  "wizard_step_invite": "Inviter",
+  "wizard_step_review": "Vérification",
+  "wizard_back_cta": "Retour",
+  "wizard_next_cta": "Suivant",
+  "wizard_submit_cta": "Créer la tontine",
+
+  "wizard_name_label": "Nom de la tontine",
+  "wizard_currency_label": "Devise",
+  "wizard_contribution_amount_label": "Montant de la contribution",
+  "wizard_frequency_label": "Fréquence de contribution",
+  "wizard_duration_type_label": "Durée",
+  "wizard_cycle_count_label": "Nombre de cycles",
+  "wizard_end_date_label": "Date de fin",
+  "wizard_goal_amount_label": "Montant objectif",
+
+  "frequency_daily": "Quotidienne",
+  "frequency_weekly": "Hebdomadaire",
+  "frequency_biweekly": "Toutes les deux semaines",
+  "frequency_monthly": "Mensuelle",
+  "frequency_quarterly": "Trimestrielle",
+  "frequency_yearly": "Annuelle",
+  "frequency_custom": "Personnalisée",
+
+  "duration_type_fixed_cycles": "Nombre de cycles fixe",
+  "duration_type_fixed_time": "Date de fin fixe",
+  "duration_type_open_ended": "Durée indéterminée",
+  "duration_type_goal_based": "Jusqu'à atteindre un montant objectif",
+
+  "wizard_strategy_step_title": "Comment le pot doit-il être distribué ?",
+  "strategy_rotating_title": "Rotative",
+  "strategy_rotating_description": "À chaque cycle, le pot revient à la personne suivante dans un ordre fixe — tout le monde reçoit son tour, dans le même ordre.",
+  "strategy_lottery_title": "Loterie",
+  "strategy_lottery_description": "À chaque cycle, un gagnant est tiré au sort parmi les membres éligibles — une façon équitable et imprévisible de décider qui reçoit le pot.",
+  "strategy_bidding_title": "Enchères",
+  "strategy_bidding_description": "Les membres enchérissent pour un accès anticipé au pot — le plus offrant le reçoit immédiatement, avec une décote, puis rembourse le montant complet au fil du temps.",
+  "strategy_not_fully_live_note": "Pas encore entièrement pris en charge de bout en bout — bientôt disponible.",
+
+  "wizard_invite_step_title": "Inviter des membres",
+  "wizard_invite_step_description": "Ajoutez l'e-mail de chaque personne que vous souhaitez inviter. Vous pourrez toujours en inviter d'autres plus tard.",
+  "wizard_invite_email_label": "E-mail",
+  "wizard_invite_add_cta": "Ajouter un autre",
+  "wizard_invite_remove_cta": "Retirer",
+
+  "wizard_review_step_title": "Vérification",
+  "wizard_review_basics_heading": "Informations de base",
+  "wizard_review_strategy_heading": "Stratégie de distribution",
+  "wizard_review_invites_heading": "Membres invités",
+  "wizard_review_no_invites": "Aucun membre invité pour l'instant."
 }
