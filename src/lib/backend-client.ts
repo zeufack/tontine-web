@@ -47,6 +47,66 @@ export async function backendLogin(input: {
 	return response.json();
 }
 
+export interface PlatformStaffStatus {
+	isStaff: boolean;
+}
+
+/**
+ * Self-check: does the authenticated caller (identified by their own
+ * session access token) hold platform-staff access? Not gated by any
+ * special permission — any authenticated user may ask this about
+ * themselves; it's how the Back Office's frontend guard decides whether to
+ * grant or redirect.
+ */
+export async function checkPlatformStaffStatus(
+	accessToken: string,
+): Promise<PlatformStaffStatus> {
+	const response = await fetch(`${getBackendUrl()}/auth/me/platform-staff`, {
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+	if (!response.ok) {
+		throw new Error(await parseErrorMessage(response));
+	}
+	return response.json();
+}
+
+export interface AdminUserSummary {
+	id: string;
+	email: string;
+	firstName: string | null;
+	lastName: string | null;
+	tontineCount: number;
+}
+
+export interface AdminUsersPage {
+	data: AdminUserSummary[];
+	total: number;
+}
+
+/**
+ * Platform-staff-only: paginated, name/email-searchable listing of every
+ * user on the platform. Requires the caller's session to hold the
+ * `platform:users:view` permission — enforced server-side by
+ * PlatformPermissionsGuard, not by this client.
+ */
+export async function fetchAdminUsers(
+	accessToken: string,
+	params?: { search?: string; page?: number; limit?: number },
+): Promise<AdminUsersPage> {
+	const url = new URL(`${getBackendUrl()}/admin/users`);
+	if (params?.search) url.searchParams.set("search", params.search);
+	if (params?.page) url.searchParams.set("page", String(params.page));
+	if (params?.limit) url.searchParams.set("limit", String(params.limit));
+
+	const response = await fetch(url, {
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+	if (!response.ok) {
+		throw new Error(await parseErrorMessage(response));
+	}
+	return response.json();
+}
+
 /**
  * The backend's `POST /auth/register` returns the created `User` entity, not
  * a session — there is no accessToken/refreshToken in this response. Callers

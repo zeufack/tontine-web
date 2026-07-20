@@ -1,4 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
+import { fetchAdminUsers } from "#/lib/backend-client";
 import { simulateNetwork } from "#/lib/mock-data/delay";
 import type {
 	PlatformStats,
@@ -6,10 +8,7 @@ import type {
 	PlatformUserSummary,
 } from "#/lib/mock-data/schemas";
 import { mockStore } from "#/lib/mock-data/store";
-
-export interface PlatformStaffStatus {
-	isStaff: boolean;
-}
+import { readSessionCookie } from "#/lib/session-cookie";
 
 export async function listAllTontines(): Promise<PlatformTontineSummary[]> {
 	const results = mockStore.tontines.map((tontine) => {
@@ -28,22 +27,36 @@ export async function listAllTontines(): Promise<PlatformTontineSummary[]> {
 	return simulateNetwork(results);
 }
 
-export async function listAllUsers(): Promise<PlatformUserSummary[]> {
-	const byEmail = new Map<string, PlatformUserSummary>();
-	for (const member of mockStore.members) {
-		const existing = byEmail.get(member.email);
-		if (existing) {
-			existing.tontineCount += 1;
-		} else {
-			byEmail.set(member.email, {
-				id: member.id,
-				name: member.name,
-				email: member.email,
-				tontineCount: 1,
-			});
+const fetchAllUsersFromBackend = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const session = readSessionCookie();
+		if (!session) {
+			throw new Error("Not authenticated");
 		}
-	}
-	return simulateNetwork(Array.from(byEmail.values()));
+		// No pager UI exists yet — a generous limit approximates "list all"
+		// for the platform's current size.
+		return fetchAdminUsers(session.accessToken, { limit: 100 });
+	},
+);
+
+export async function listAllUsers(): Promise<PlatformUserSummary[]> {
+	const { data } = await fetchAllUsersFromBackend();
+	return data.map((user) => ({
+		id: user.id,
+		name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email,
+		email: user.email,
+		tontineCount: user.tontineCount,
+	}));
+}
+
+/**
+ * totalTontines/totalPotValue below still come from mock data (tontine
+ * listing/stats are #17/#18, not yet real) — counting unique mock members
+ * here directly, rather than deriving from the now-real listAllUsers(),
+ * keeps this mock-only aggregate from silently mixing in real data.
+ */
+function countMockUsers(): number {
+	return new Set(mockStore.members.map((member) => member.email)).size;
 }
 
 export async function getPlatformStats(): Promise<PlatformStats> {
@@ -53,24 +66,9 @@ export async function getPlatformStats(): Promise<PlatformStats> {
 	);
 	return simulateNetwork({
 		totalTontines: mockStore.tontines.length,
-		totalUsers: (await listAllUsers()).length,
+		totalUsers: countMockUsers(),
 		totalPotValue,
 	});
-}
-
-/**
- * TODO(api): replace with a real staff/role check once the user model
- * exposes a platform-level role (the Better Auth session has no such field
- * yet).
- *
- * `overrideIsStaff` is a dev-only escape hatch (wired to a `?staff=` search
- * param) for manually exercising both branches of the `_platformStaff` guard
- * without real multi-user auth.
- */
-export async function getPlatformStaffStatusStub(options?: {
-	overrideIsStaff?: boolean;
-}): Promise<PlatformStaffStatus> {
-	return { isStaff: options?.overrideIsStaff ?? true };
 }
 
 export const platformQueries = {
