@@ -59,7 +59,9 @@ const AuthenticatedPlatformStaffRoute =
   AuthenticatedPlatformStaffRouteImport.update({
     id: '/_platformStaff',
     getParentRoute: () => AuthenticatedRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/_platformStaff.lazy').then((d) => d.Route),
+  )
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -80,19 +82,31 @@ const AuthenticatedPlatformStaffAdminIndexRoute =
     id: '/admin/',
     path: '/admin/',
     getParentRoute: () => AuthenticatedPlatformStaffRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/_platformStaff/admin/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedPlatformStaffAdminTontinesRoute =
   AuthenticatedPlatformStaffAdminTontinesRouteImport.update({
     id: '/admin/tontines',
     path: '/admin/tontines',
     getParentRoute: () => AuthenticatedPlatformStaffRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/_platformStaff/admin/tontines.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedPlatformStaffAdminUsersRoute =
   AuthenticatedPlatformStaffAdminUsersRouteImport.update({
     id: '/admin/users',
     path: '/admin/users',
     getParentRoute: () => AuthenticatedPlatformStaffRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authenticated/_platformStaff/admin/users.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthenticatedAppTontinesTontineIdRoute =
   AuthenticatedAppTontinesTontineIdRouteImport.update({
     id: '/tontines/$tontineId',
