@@ -107,6 +107,71 @@ export async function fetchAdminUsers(
 	return response.json();
 }
 
+export interface AdminTontineTypeSummary {
+	name: string;
+}
+
+export interface AdminTontineSummary {
+	id: string;
+	name: string;
+	memberCount: number;
+	potTotal: number;
+	tontineType: AdminTontineTypeSummary;
+}
+
+export interface AdminTontinesPage {
+	data: AdminTontineSummary[];
+	total: number;
+}
+
+/**
+ * Platform-staff-only: paginated, name-searchable listing of every tontine
+ * on the platform, each annotated with memberCount and potTotal. Requires
+ * the caller's session to hold the `platform:tontines:view` permission —
+ * enforced server-side by PlatformPermissionsGuard, not by this client.
+ */
+export async function fetchAdminTontines(
+	accessToken: string,
+	params?: { search?: string; page?: number; limit?: number },
+): Promise<AdminTontinesPage> {
+	const url = new URL(`${getBackendUrl()}/admin/tontines`);
+	if (params?.search) url.searchParams.set("search", params.search);
+	if (params?.page) url.searchParams.set("page", String(params.page));
+	if (params?.limit) url.searchParams.set("limit", String(params.limit));
+
+	const response = await fetch(url, {
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+	if (!response.ok) {
+		throw new Error(await parseErrorMessage(response));
+	}
+	return response.json();
+}
+
+export interface AdminStats {
+	totalTontines: number;
+	totalUsers: number;
+	totalPotValue: number;
+}
+
+/**
+ * Platform-staff-only: platform-wide aggregate stats (total tontines, total
+ * users, total pot value) for the Back Office Overview screen. Requires the
+ * caller's session to hold the `platform:stats:view` permission — enforced
+ * server-side by PlatformPermissionsGuard, not by this client.
+ */
+export async function fetchAdminStats(
+	accessToken: string,
+): Promise<AdminStats> {
+	const response = await fetch(`${getBackendUrl()}/admin/stats`, {
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+	if (!response.ok) {
+		throw new Error(await parseErrorMessage(response));
+	}
+	return response.json();
+}
+
 /**
  * The backend's `POST /auth/register` returns the created `User` entity, not
  * a session — there is no accessToken/refreshToken in this response. Callers
