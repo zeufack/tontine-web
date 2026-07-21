@@ -1,22 +1,74 @@
 import { queryOptions } from "@tanstack/react-query";
-import { simulateNetwork } from "#/lib/mock-data/delay";
-import type { UserProfile } from "#/lib/mock-data/schemas";
-import {
-	CURRENT_USER_ID,
-	mockStore,
-	updateProfile as updateProfileInStore,
-} from "#/lib/mock-data/store";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { deleteUser, fetchUser, updateUser } from "#/lib/backend-client/users";
+import { readSessionCookie } from "#/lib/session-cookie";
 
-export async function getUserProfile(): Promise<UserProfile> {
-	const profile = mockStore.profiles[CURRENT_USER_ID];
-	if (!profile) throw new Error("Current user profile not found in mock store");
-	return simulateNetwork(profile);
+export interface UserProfile {
+	id: string;
+	firstName: string;
+	lastName: string;
+	email: string;
+	phoneNumber: string;
 }
 
+const fetchProfileFromBackend = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		return fetchUser(session.accessToken, session.user.id);
+	},
+);
+
+export async function getUserProfile(): Promise<UserProfile> {
+	const user = await fetchProfileFromBackend();
+	return {
+		id: user.id,
+		firstName: user.firstName ?? "",
+		lastName: user.lastName ?? "",
+		email: user.email,
+		phoneNumber: user.phoneNumber ?? "",
+	};
+}
+
+const updateProfileSchema = z.object({
+	firstName: z.string().min(1).optional(),
+	lastName: z.string().min(1).optional(),
+	phoneNumber: z.string().optional(),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+const updateProfileOnBackend = createServerFn({ method: "POST" })
+	.validator(updateProfileSchema)
+	.handler(async ({ data }) => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		return updateUser(session.accessToken, session.user.id, data);
+	});
+
 export async function updateProfile(
-	patch: Partial<UserProfile>,
+	patch: UpdateProfileInput,
 ): Promise<UserProfile> {
-	return simulateNetwork(updateProfileInStore(CURRENT_USER_ID, patch));
+	const user = await updateProfileOnBackend({ data: patch });
+	return {
+		id: user.id,
+		firstName: user.firstName ?? "",
+		lastName: user.lastName ?? "",
+		email: user.email,
+		phoneNumber: user.phoneNumber ?? "",
+	};
+}
+
+const deleteAccountOnBackend = createServerFn({ method: "POST" }).handler(
+	async () => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		await deleteUser(session.accessToken, session.user.id);
+	},
+);
+
+export async function deleteAccount(): Promise<void> {
+	await deleteAccountOnBackend();
 }
 
 export const profileQueries = {

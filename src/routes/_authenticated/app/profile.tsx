@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,6 +16,15 @@ import {
 	CardTitle,
 } from "#/components/ui/card.tsx";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#/components/ui/dialog.tsx";
+import {
 	Form,
 	FormControl,
 	FormField,
@@ -24,8 +34,12 @@ import {
 } from "#/components/ui/form.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
-import { profileQueries, updateProfile } from "#/features/profile/api";
-import type { UserProfile } from "#/lib/mock-data/schemas";
+import {
+	deleteAccount,
+	profileQueries,
+	updateProfile,
+} from "#/features/profile/api";
+import { sessionQueryKey } from "#/lib/session-client";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_authenticated/app/profile")({
@@ -33,25 +47,27 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
 });
 
 const profileFormSchema = z.object({
-	name: z.string().min(1, m.validation_required()),
+	firstName: z.string().min(1, m.validation_required()),
+	lastName: z.string().min(1, m.validation_required()),
+	phoneNumber: z.string(),
 });
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-const MOBILE_MONEY_PROVIDER_LABEL: Record<
-	UserProfile["mobileMoneyNumbers"][number]["provider"],
-	() => string
-> = {
-	mtn_money: m.mobile_money_provider_mtn_money,
-	orange_money: m.mobile_money_provider_orange_money,
-};
-
 function ProfilePage() {
 	const queryClient = useQueryClient();
+	const router = useRouter();
 	const { data: profile } = useQuery(profileQueries.mine());
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	const form = useForm<ProfileFormValues>({
 		resolver: zodResolver(profileFormSchema),
-		values: profile ? { name: profile.name } : undefined,
+		values: profile
+			? {
+					firstName: profile.firstName,
+					lastName: profile.lastName,
+					phoneNumber: profile.phoneNumber,
+				}
+			: undefined,
 	});
 
 	const updateMutation = useMutation({
@@ -60,14 +76,26 @@ function ProfilePage() {
 			await queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
 			toast.success(m.profile_save_success());
 		},
+		onError: () => {
+			toast.error(m.profile_save_error());
+		},
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: deleteAccount,
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: sessionQueryKey });
+			// Re-runs beforeLoad so `_authenticated`'s guard sees the now-invalid
+			// session and redirects to /login.
+			await router.invalidate();
+		},
+		onError: () => {
+			toast.error(m.profile_delete_account_error());
+		},
 	});
 
 	function onSubmit(values: ProfileFormValues) {
-		updateMutation.mutate({ name: values.name });
-	}
-
-	function handleLocaleChange(locale: UserProfile["locale"]) {
-		updateMutation.mutate({ locale });
+		updateMutation.mutate(values);
 	}
 
 	if (!profile) {
@@ -96,10 +124,36 @@ function ProfilePage() {
 						>
 							<FormField
 								control={form.control}
-								name="name"
+								name="firstName"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>{m.profile_name_label()}</FormLabel>
+										<FormLabel>{m.register_first_name_label()}</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="lastName"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>{m.register_last_name_label()}</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="phoneNumber"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>{m.register_phone_label()}</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -133,37 +187,50 @@ function ProfilePage() {
 					<CardDescription>{m.profile_locale_description()}</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<LocaleSwitcher onLocaleChange={handleLocaleChange} />
+					<LocaleSwitcher />
 				</CardContent>
 			</Card>
 
-			<Card>
+			<Card className="border-destructive/50">
 				<CardHeader>
-					<CardTitle>{m.profile_mobile_money_title()}</CardTitle>
+					<CardTitle>{m.profile_delete_account_title()}</CardTitle>
 					<CardDescription>
-						{m.profile_mobile_money_display_only_note()}
+						{m.profile_delete_account_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{profile.mobileMoneyNumbers.length === 0 ? (
-						<p className="text-sm text-muted-foreground">
-							{m.profile_mobile_money_empty()}
-						</p>
-					) : (
-						<ul className="flex flex-col gap-2">
-							{profile.mobileMoneyNumbers.map((entry) => (
-								<li
-									key={entry.number}
-									className="flex items-center justify-between rounded-lg border px-3 py-2"
+					<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+						<DialogTrigger asChild>
+							<Button variant="destructive">
+								{m.profile_delete_account_trigger_cta()}
+							</Button>
+						</DialogTrigger>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>
+									{m.profile_delete_account_confirm_title()}
+								</DialogTitle>
+								<DialogDescription>
+									{m.profile_delete_account_confirm_description()}
+								</DialogDescription>
+							</DialogHeader>
+							<DialogFooter>
+								<Button
+									variant="outline"
+									onClick={() => setDeleteDialogOpen(false)}
 								>
-									<span>{MOBILE_MONEY_PROVIDER_LABEL[entry.provider]()}</span>
-									<span className="font-medium tabular-nums">
-										{entry.number}
-									</span>
-								</li>
-							))}
-						</ul>
-					)}
+									{m.profile_delete_account_cancel_cta()}
+								</Button>
+								<Button
+									variant="destructive"
+									disabled={deleteMutation.isPending}
+									onClick={() => deleteMutation.mutate()}
+								>
+									{m.profile_delete_account_confirm_cta()}
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
 				</CardContent>
 			</Card>
 		</div>
