@@ -1,40 +1,85 @@
 import { queryOptions } from "@tanstack/react-query";
-import { simulateNetwork } from "#/lib/mock-data/delay";
-import type { Member } from "#/lib/mock-data/schemas";
+import { createServerFn } from "@tanstack/react-start";
 import {
-	inviteMember as inviteMemberInStore,
-	mockStore,
-	promoteMember as promoteMemberInStore,
-	removeMember as removeMemberInStore,
-} from "#/lib/mock-data/store";
+	activateParticipant as activateParticipantOnBackend,
+	type BackendParticipant,
+	fetchParticipantsForTontine,
+	suspendParticipant as suspendParticipantOnBackend,
+} from "#/lib/backend-client/participants";
+import type { ParticipantStatus } from "#/lib/mock-data/schemas";
+import { readSessionCookie } from "#/lib/session-cookie";
+
+export type { ParticipantStatus };
+
+export interface Member {
+	id: string;
+	name: string;
+	email: string;
+	status: ParticipantStatus;
+	joinedAt: string | null;
+}
+
+function toMember(participant: BackendParticipant): Member {
+	const user = participant.user;
+	const name = user
+		? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email
+		: "—";
+	return {
+		id: participant.id,
+		name,
+		email: user?.email ?? "",
+		status: participant.status,
+		joinedAt: participant.joinedAt,
+	};
+}
+
+const fetchMembersFromBackend = createServerFn({ method: "GET" })
+	.validator((tontineId: string) => tontineId)
+	.handler(async ({ data: tontineId }): Promise<Member[]> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const participants = await fetchParticipantsForTontine(
+			session.accessToken,
+			tontineId,
+		);
+		return participants.map(toMember);
+	});
 
 export async function listMembers(tontineId: string): Promise<Member[]> {
-	const results = mockStore.members.filter(
-		(member) => member.tontineId === tontineId,
-	);
-	return simulateNetwork(results);
+	return fetchMembersFromBackend({ data: tontineId });
 }
 
-export async function inviteMember(
-	tontineId: string,
-	email: string,
-): Promise<Member> {
-	return simulateNetwork(inviteMemberInStore(tontineId, email));
+const activateMemberOnServer = createServerFn({ method: "POST" })
+	.validator((participantId: string) => participantId)
+	.handler(async ({ data: participantId }): Promise<Member> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const participant = await activateParticipantOnBackend(
+			session.accessToken,
+			participantId,
+		);
+		return toMember(participant);
+	});
+
+/** Approves a pending participant (private-tontine join approval). */
+export async function activateMember(participantId: string): Promise<Member> {
+	return activateMemberOnServer({ data: participantId });
 }
 
-export async function removeMember(
-	tontineId: string,
-	memberId: string,
-): Promise<void> {
-	removeMemberInStore(tontineId, memberId);
-	return simulateNetwork(undefined);
-}
+const suspendMemberOnServer = createServerFn({ method: "POST" })
+	.validator((participantId: string) => participantId)
+	.handler(async ({ data: participantId }): Promise<Member> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const participant = await suspendParticipantOnBackend(
+			session.accessToken,
+			participantId,
+		);
+		return toMember(participant);
+	});
 
-export async function promoteMember(
-	tontineId: string,
-	memberId: string,
-): Promise<Member> {
-	return simulateNetwork(promoteMemberInStore(tontineId, memberId));
+export async function suspendMember(participantId: string): Promise<Member> {
+	return suspendMemberOnServer({ data: participantId });
 }
 
 export const memberQueries = {

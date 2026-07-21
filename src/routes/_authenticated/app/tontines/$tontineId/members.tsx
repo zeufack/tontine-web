@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -11,30 +10,18 @@ import {
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { toast } from "sonner";
 
 import { ParticipantStatusBadge } from "#/components/tontine/participant-status-badge.tsx";
-import { RoleBadge } from "#/components/tontine/role-badge.tsx";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#/components/ui/dialog.tsx";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "#/components/ui/form.tsx";
-import { Input } from "#/components/ui/input.tsx";
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card.tsx";
 import {
 	Table,
 	TableBody,
@@ -44,13 +31,12 @@ import {
 	TableRow,
 } from "#/components/ui/table.tsx";
 import {
-	inviteMember,
+	activateMember,
+	type Member,
 	memberQueries,
-	promoteMember,
-	removeMember,
+	suspendMember,
 } from "#/features/members/api";
 import { useTontineRole } from "#/features/tontines/use-tontine-role";
-import type { Member } from "#/lib/mock-data/schemas";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
@@ -58,13 +44,6 @@ export const Route = createFileRoute(
 )({
 	component: MembersPage,
 });
-
-// Identifier is email-only today; structured the same pluggable way as the
-// Create Tontine wizard's invite step so it can swap to phone later.
-const inviteFormSchema = z.object({
-	identifier: z.string().email(m.validation_invalid_email()),
-});
-type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
 function initials(name: string): string {
 	return name
@@ -100,15 +79,12 @@ function SortableHeader({
 
 function MembersPage() {
 	const { tontineId } = Route.useParams();
-	// isAdmin stands in for the real `member:manage` per-tontine permission
-	// (DESIGN.md §4's 9-permission/7-role model) until that RBAC model exists
-	// in the mock/API layer — same simplification as the Contributions tab's
-	// validation queue.
+	// `member:manage` is only provable today for the tontine creator — see
+	// permissions.ts's documented gap (no endpoint exposes TontineAdministrator
+	// role assignments, zeufack/totine#17).
 	const { isAdmin } = useTontineRole();
 	const queryClient = useQueryClient();
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [inviteOpen, setInviteOpen] = useState(false);
-	const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
 
 	const { data: members } = useQuery(memberQueries.list(tontineId));
 
@@ -118,32 +94,30 @@ function MembersPage() {
 		});
 	}
 
-	const inviteForm = useForm<InviteFormValues>({
-		resolver: zodResolver(inviteFormSchema),
-		defaultValues: { identifier: "" },
-	});
-
-	const inviteMutation = useMutation({
-		mutationFn: (identifier: string) => inviteMember(tontineId, identifier),
-		onSuccess: async () => {
-			await invalidateMembers();
-			inviteForm.reset();
-			setInviteOpen(false);
-		},
-	});
-
-	const promoteMutation = useMutation({
-		mutationFn: (memberId: string) => promoteMember(tontineId, memberId),
+	const activateMutation = useMutation({
+		mutationFn: activateMember,
 		onSuccess: invalidateMembers,
-	});
-
-	const removeMutation = useMutation({
-		mutationFn: (memberId: string) => removeMember(tontineId, memberId),
-		onSuccess: async () => {
-			await invalidateMembers();
-			setRemoveTarget(null);
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.members_action_error(),
+			);
 		},
 	});
+
+	const suspendMutation = useMutation({
+		mutationFn: suspendMember,
+		onSuccess: invalidateMembers,
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.members_action_error(),
+			);
+		},
+	});
+
+	const pendingMembers = useMemo(
+		() => (members ?? []).filter((member) => member.status === "pending"),
+		[members],
+	);
 
 	const columns = useMemo<ColumnDef<Member>[]>(() => {
 		const base: ColumnDef<Member>[] = [
@@ -172,18 +146,6 @@ function MembersPage() {
 				),
 			},
 			{
-				id: "role",
-				accessorKey: "role",
-				header: ({ column }) => (
-					<SortableHeader
-						label={m.members_table_role()}
-						sorted={column.getIsSorted()}
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					/>
-				),
-				cell: ({ row }) => <RoleBadge role={row.original.role} />,
-			},
-			{
 				id: "status",
 				accessorKey: "status",
 				header: ({ column }) => (
@@ -207,20 +169,10 @@ function MembersPage() {
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 					/>
 				),
-				cell: ({ row }) => new Date(row.original.joinedAt).toLocaleDateString(),
-			},
-			{
-				id: "contributionStreak",
-				accessorKey: "contributionStreak",
-				header: ({ column }) => (
-					<SortableHeader
-						label={m.members_table_streak()}
-						sorted={column.getIsSorted()}
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					/>
-				),
 				cell: ({ row }) =>
-					m.members_streak_value({ count: row.original.contributionStreak }),
+					row.original.joinedAt
+						? new Date(row.original.joinedAt).toLocaleDateString()
+						: "—",
 			},
 		];
 
@@ -231,29 +183,23 @@ function MembersPage() {
 				enableSorting: false,
 				cell: ({ row }) => (
 					<div className="flex justify-end gap-2">
-						{row.original.role !== "admin" && (
+						{row.original.status === "active" && (
 							<Button
 								size="sm"
 								variant="outline"
-								onClick={() => promoteMutation.mutate(row.original.id)}
+								disabled={suspendMutation.isPending}
+								onClick={() => suspendMutation.mutate(row.original.id)}
 							>
-								{m.members_promote_cta()}
+								{m.members_suspend_cta()}
 							</Button>
 						)}
-						<Button
-							size="sm"
-							variant="destructive"
-							onClick={() => setRemoveTarget(row.original)}
-						>
-							{m.members_remove_cta()}
-						</Button>
 					</div>
 				),
 			});
 		}
 
 		return base;
-	}, [isAdmin, promoteMutation]);
+	}, [isAdmin, suspendMutation]);
 
 	const table = useReactTable({
 		data: members ?? [],
@@ -264,54 +210,47 @@ function MembersPage() {
 		getSortedRowModel: getSortedRowModel(),
 	});
 
-	function onInviteSubmit(values: InviteFormValues) {
-		inviteMutation.mutate(values.identifier);
-	}
-
 	return (
-		<div className="flex flex-col gap-4">
-			<div className="flex items-center justify-between">
-				<h2 className="text-xl font-semibold">{m.members_title()}</h2>
-				{isAdmin && (
-					<Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-						<DialogTrigger asChild>
-							<Button size="sm">{m.members_invite_cta()}</Button>
-						</DialogTrigger>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>{m.members_invite_dialog_title()}</DialogTitle>
-							</DialogHeader>
-							<Form {...inviteForm}>
-								<form
-									onSubmit={inviteForm.handleSubmit(onInviteSubmit)}
-									className="flex flex-col gap-4"
+		<div className="flex flex-col gap-6">
+			<h2 className="text-xl font-semibold">{m.members_title()}</h2>
+
+			{isAdmin && pendingMembers.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle>{m.members_pending_section_title()}</CardTitle>
+						<CardDescription>
+							{m.members_pending_section_description()}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="flex flex-col gap-2">
+						{pendingMembers.map((member) => (
+							<div
+								key={member.id}
+								className="flex items-center justify-between rounded-lg border px-3 py-2"
+							>
+								<div className="flex items-center gap-2">
+									<Avatar>
+										<AvatarFallback>{initials(member.name)}</AvatarFallback>
+									</Avatar>
+									<div className="flex flex-col">
+										<span className="font-medium">{member.name}</span>
+										<span className="text-xs text-muted-foreground">
+											{member.email}
+										</span>
+									</div>
+								</div>
+								<Button
+									size="sm"
+									disabled={activateMutation.isPending}
+									onClick={() => activateMutation.mutate(member.id)}
 								>
-									<FormField
-										control={inviteForm.control}
-										name="identifier"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>
-													{m.members_invite_identifier_label()}
-												</FormLabel>
-												<FormControl>
-													<Input type="email" {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<DialogFooter>
-										<Button type="submit" disabled={inviteMutation.isPending}>
-											{m.members_invite_submit_cta()}
-										</Button>
-									</DialogFooter>
-								</form>
-							</Form>
-						</DialogContent>
-					</Dialog>
-				)}
-			</div>
+									{m.members_approve_cta()}
+								</Button>
+							</div>
+						))}
+					</CardContent>
+				</Card>
+			)}
 
 			<Table>
 				<TableHeader>
@@ -342,36 +281,6 @@ function MembersPage() {
 					))}
 				</TableBody>
 			</Table>
-
-			<Dialog
-				open={removeTarget !== null}
-				onOpenChange={(open) => {
-					if (!open) setRemoveTarget(null);
-				}}
-			>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>{m.members_remove_confirm_title()}</DialogTitle>
-					</DialogHeader>
-					<p className="text-sm text-muted-foreground">
-						{removeTarget &&
-							m.members_remove_confirm_description({
-								name: removeTarget.name,
-							})}
-					</p>
-					<DialogFooter>
-						<Button
-							variant="destructive"
-							disabled={removeMutation.isPending}
-							onClick={() =>
-								removeTarget && removeMutation.mutate(removeTarget.id)
-							}
-						>
-							{m.members_remove_confirm_cta()}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 }
