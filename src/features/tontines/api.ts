@@ -3,21 +3,17 @@ import { createServerFn } from "@tanstack/react-start";
 import {
 	activateTontine as activateTontineOnBackend,
 	type BackendTontine,
+	type ContributionFrequency,
+	createTontine as createTontineOnBackend,
+	type DurationType,
 	fetchMyTontines,
 	fetchTontineById,
 	fetchTontineStatistics,
+	fetchTontineTypes,
 	type TontineStatistics,
 	type TontineStatus,
 } from "#/lib/backend-client/tontines";
-import { simulateNetwork } from "#/lib/mock-data/delay";
-import type {
-	DurationType,
-	MembershipRole,
-	Tontine as MockTontine,
-	PayoutStrategy,
-	TontineFrequency,
-} from "#/lib/mock-data/schemas";
-import { createTontine as createTontineInStore } from "#/lib/mock-data/store";
+import type { MembershipRole, PayoutStrategy } from "#/lib/mock-data/schemas";
 import { readSessionCookie } from "#/lib/session-cookie";
 
 export type { TontineStatus, TontineStatistics };
@@ -112,24 +108,67 @@ export async function activateTontine(tontineId: string): Promise<Tontine> {
 	return activateTontineOnServer({ data: tontineId });
 }
 
-/**
- * TODO(api): not yet wired to the real `POST /tontines` (#24) — still reads
- * and writes the mock store. Return type is intentionally the mock
- * `Tontine` shape (not this module's real-backend `Tontine`), since only
- * `.id` is consumed by the creation wizard's `onSuccess` navigation today.
- */
-export async function createTontine(input: {
+export interface CreateTontineInput {
 	name: string;
 	currency: string;
 	contributionAmount: number;
-	frequency: TontineFrequency;
+	frequency: ContributionFrequency;
 	payoutStrategy: PayoutStrategy;
 	durationType: DurationType;
 	cycleCount?: number;
 	endDate?: string;
 	goalAmount?: number;
-}): Promise<MockTontine> {
-	return simulateNetwork(createTontineInStore(input));
+}
+
+const createTontineOnServer = createServerFn({ method: "POST" })
+	.validator((input: CreateTontineInput) => input)
+	.handler(async ({ data: input }): Promise<Tontine> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+
+		// The wizard's 3-option strategy picker (rotating/lottery/bidding)
+		// doubles as the real `TontineType.name` — resolved to its
+		// per-database id here since `POST /tontines` needs a real
+		// `tontineTypeId`, not the strategy name itself.
+		const tontineTypes = await fetchTontineTypes();
+		const tontineType = tontineTypes.find(
+			(type) => type.name === input.payoutStrategy,
+		);
+		if (!tontineType) {
+			throw new Error(
+				`No tontine type named "${input.payoutStrategy}" was found on the backend.`,
+			);
+		}
+
+		// `endDate` (for `fixed_time`) has no equivalent field on the create
+		// DTO — only a single `durationValue` ("cycles, months, or target
+		// amount" per the entity's own comment). Fixed-time tontines are
+		// created without a persisted end date until the backend adds one.
+		const durationValue =
+			input.durationType === "fixed_cycles"
+				? input.cycleCount
+				: input.durationType === "goal_based"
+					? input.goalAmount
+					: undefined;
+
+		const tontine = await createTontineOnBackend(session.accessToken, {
+			name: input.name,
+			tontineTypeId: tontineType.id,
+			contributionFrequency: input.frequency,
+			durationType: input.durationType,
+			durationValue,
+			configuration: {
+				currency: input.currency,
+				contributionAmount: input.contributionAmount,
+			},
+		});
+		return toTontine(tontine);
+	});
+
+export async function createTontine(
+	input: CreateTontineInput,
+): Promise<Tontine> {
+	return createTontineOnServer({ data: input });
 }
 
 /**

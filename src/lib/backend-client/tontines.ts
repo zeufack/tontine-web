@@ -109,3 +109,48 @@ export async function activateTontine(
 	});
 	return backendTontineSchema.parse(raw);
 }
+
+export const tontineTypeSummarySchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string(),
+});
+export type TontineTypeSummary = z.infer<typeof tontineTypeSummarySchema>;
+
+/** `GET /tontine-types` is `@Public()` — no accessToken required. */
+export async function fetchTontineTypes(): Promise<TontineTypeSummary[]> {
+	const raw = await apiFetch("/tontine-types");
+	return z.array(tontineTypeSummarySchema).parse(raw);
+}
+
+export const durationTypeSchema = z.enum([
+	"fixed_cycles",
+	"fixed_time",
+	"open_ended",
+	"goal_based",
+]);
+export type DurationType = z.infer<typeof durationTypeSchema>;
+
+export interface CreateTontineInput {
+	name: string;
+	tontineTypeId: string;
+	configuration: Record<string, unknown>;
+	contributionFrequency: ContributionFrequency;
+	durationType: DurationType;
+	/** "Number of cycles, months, or target amount" per the entity's own
+	 * comment — meaning has no dedicated field for `fixed_time`'s end date;
+	 * the create DTO has no way to accept one (see zeufack/totine, flagged
+	 * but not filed as a blocker — narrower gap than the tontineTypeId one). */
+	durationValue?: number;
+}
+
+export async function createTontine(
+	accessToken: string,
+	input: CreateTontineInput,
+): Promise<BackendTontine> {
+	const raw = await apiFetch("/tontines", accessToken, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+	return backendTontineSchema.parse(raw);
+}
