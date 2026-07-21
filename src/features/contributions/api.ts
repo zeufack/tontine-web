@@ -6,6 +6,7 @@ import {
 	type ContributionStatus,
 	createContribution as createContributionOnBackend,
 	fetchContributions,
+	validateContribution as validateContributionOnBackend,
 } from "#/lib/backend-client/contributions";
 import { fetchCurrentCycle } from "#/lib/backend-client/cycles";
 import { fetchParticipantsForTontine } from "#/lib/backend-client/participants";
@@ -154,6 +155,106 @@ export async function recordContribution(
 	return recordContributionOnServer({ data: input });
 }
 
+export interface PendingContribution {
+	id: string;
+	participantName: string;
+	amount: number;
+	method: ContributionMethod;
+	submittedAt: string;
+}
+
+function toPendingContribution(
+	backendContribution: BackendContribution,
+): PendingContribution {
+	const user = backendContribution.participant?.user;
+	const participantName = user
+		? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email
+		: "—";
+	return {
+		id: backendContribution.id,
+		participantName,
+		amount: backendContribution.amount,
+		method: backendContribution.method,
+		submittedAt: backendContribution.createdAt,
+	};
+}
+
+const fetchPendingContributionsFromBackend = createServerFn({
+	method: "GET",
+})
+	.validator((tontineId: string) => tontineId)
+	.handler(async ({ data: tontineId }): Promise<PendingContribution[]> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const { data } = await fetchContributions(session.accessToken, {
+			limit: CONTRIBUTIONS_FETCH_LIMIT,
+		});
+		return data
+			.filter(
+				(contribution) =>
+					contribution.turn?.tontine?.id === tontineId &&
+					contribution.status === "pending",
+			)
+			.map(toPendingContribution);
+	});
+
+export async function listPendingContributions(
+	tontineId: string,
+): Promise<PendingContribution[]> {
+	return fetchPendingContributionsFromBackend({ data: tontineId });
+}
+
+const validateContributionOnServer = createServerFn({ method: "POST" })
+	.validator(
+		(input: {
+			tontineId: string;
+			contributionId: string;
+			approve: boolean;
+			rejectionReason?: string;
+		}) => input,
+	)
+	.handler(async ({ data: input }): Promise<void> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const result = await validateContributionOnBackend(
+			session.accessToken,
+			input,
+		);
+		// A reject (`approve: false`) always reports `isValid: false` — that's
+		// confirmation the rejection went through, not a failure. Only an
+		// approve attempt that comes back invalid (amount mismatch, turn not
+		// accepting contributions, ...) is a real error.
+		if (input.approve && !result.isValid) {
+			throw new Error(result.errors?.join(", ") || result.message);
+		}
+	});
+
+/** Approve a pending contribution. */
+export async function approveContribution(
+	tontineId: string,
+	contributionId: string,
+): Promise<void> {
+	return validateContributionOnServer({
+		data: { tontineId, contributionId, approve: true },
+	});
+}
+
+/** Reject a pending contribution — `reason` is shown to the participant. */
+export async function rejectContribution(
+	tontineId: string,
+	contributionId: string,
+	reason: string,
+): Promise<void> {
+	return validateContributionOnServer({
+		data: {
+			tontineId,
+			contributionId,
+			approve: false,
+			rejectionReason: reason,
+		},
+	});
+}
+
 export const contributionQueries = {
 	mine: (tontineId: string) =>
 		queryOptions({
@@ -165,5 +266,18 @@ export const contributionQueries = {
 		queryOptions({
 			queryKey: ["tontine", tontineId, "contributions", "target"] as const,
 			queryFn: () => getContributionTarget(tontineId),
+		}),
+
+	/**
+	 * The validation queue is a time-sensitive admin view per DESIGN.md §8 —
+	 * poll it rather than relying on the app-wide defaults.
+	 */
+	pending: (tontineId: string) =>
+		queryOptions({
+			queryKey: ["tontine", tontineId, "contributions", "pending"] as const,
+			queryFn: () => listPendingContributions(tontineId),
+			staleTime: 5_000,
+			refetchOnWindowFocus: true,
+			refetchInterval: 15_000,
 		}),
 };

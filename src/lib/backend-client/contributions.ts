@@ -27,7 +27,14 @@ const backendContributionTurnSchema = z.object({
 
 const backendContributionParticipantSchema = z.object({
 	id: z.string(),
-	user: z.object({ id: z.string() }).nullish(),
+	user: z
+		.object({
+			id: z.string(),
+			email: z.string().email(),
+			firstName: z.string().nullable(),
+			lastName: z.string().nullable(),
+		})
+		.nullish(),
 });
 
 export const backendContributionSchema = z.object({

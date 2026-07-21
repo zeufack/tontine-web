@@ -13,6 +13,7 @@ import {
 import { ContributionStatusBadge } from "#/components/tontine/contribution-status-badge.tsx";
 import { Amount } from "#/components/ui/amount.tsx";
 import { Button } from "#/components/ui/button.tsx";
+import { Checkbox } from "#/components/ui/checkbox.tsx";
 import {
 	Dialog,
 	DialogContent,
@@ -39,10 +40,14 @@ import {
 	TableRow,
 } from "#/components/ui/table.tsx";
 import {
+	approveContribution,
 	contributionQueries,
 	recordContribution,
+	rejectContribution,
 } from "#/features/contributions/api";
 import { tontineQueries } from "#/features/tontines/api";
+import { TONTINE_PERMISSIONS } from "#/features/tontines/permissions";
+import { useTontineRole } from "#/features/tontines/use-tontine-role";
 import { contributionMethodSchema } from "#/lib/mock-data/schemas";
 import { m } from "#/paraglide/messages";
 
@@ -61,6 +66,8 @@ type RecordFormValues = z.infer<typeof recordFormSchema>;
 
 function ContributionsPage() {
 	const { tontineId } = Route.useParams();
+	const { has } = useTontineRole();
+	const canValidate = has(TONTINE_PERMISSIONS.FUNDS_DISTRIBUTE);
 	const queryClient = useQueryClient();
 	const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -242,6 +249,189 @@ function ContributionsPage() {
 					</Table>
 				)}
 			</div>
+
+			{canValidate && (
+				<ValidationQueue
+					tontineId={tontineId}
+					currency={currency}
+					onMutate={invalidateContributionQueries}
+				/>
+			)}
+		</div>
+	);
+}
+
+function ValidationQueue({
+	tontineId,
+	currency,
+	onMutate,
+}: {
+	tontineId: string;
+	currency: string;
+	onMutate: () => Promise<void>;
+}) {
+	const { data: pending } = useQuery(contributionQueries.pending(tontineId));
+	const [selected, setSelected] = useState<Set<string>>(new Set());
+	const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+	const [rejectReason, setRejectReason] = useState("");
+
+	const approveMutation = useMutation({
+		mutationFn: (contributionId: string) =>
+			approveContribution(tontineId, contributionId),
+		onSuccess: onMutate,
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.validation_approve_error(),
+			);
+		},
+	});
+
+	const rejectMutation = useMutation({
+		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+			rejectContribution(tontineId, id, reason),
+		onSuccess: async () => {
+			await onMutate();
+			setRejectTarget(null);
+			setRejectReason("");
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.validation_reject_error(),
+			);
+		},
+	});
+
+	async function bulkApprove() {
+		await Promise.all(
+			Array.from(selected).map((id) => approveContribution(tontineId, id)),
+		);
+		setSelected(new Set());
+		await onMutate();
+	}
+
+	if (!pending) return null;
+
+	return (
+		<div className="flex flex-col gap-3 border-t pt-6">
+			<div className="flex items-center justify-between">
+				<h3 className="text-sm font-semibold text-muted-foreground">
+					{m.validation_queue_title()}
+				</h3>
+				{selected.size > 0 && (
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => void bulkApprove()}
+					>
+						{m.validation_bulk_approve_cta()} ({selected.size})
+					</Button>
+				)}
+			</div>
+			{pending.length === 0 ? (
+				<p className="text-sm text-muted-foreground">
+					{m.validation_queue_empty()}
+				</p>
+			) : (
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead className="w-8" />
+							<TableHead>{m.validation_table_member()}</TableHead>
+							<TableHead>{m.contributions_table_method()}</TableHead>
+							<TableHead>{m.contributions_table_amount()}</TableHead>
+							<TableHead>{m.validation_table_timestamp()}</TableHead>
+							<TableHead />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{pending.map((contribution) => (
+							<TableRow key={contribution.id}>
+								<TableCell>
+									<Checkbox
+										checked={selected.has(contribution.id)}
+										onCheckedChange={(checked) => {
+											setSelected((prev) => {
+												const next = new Set(prev);
+												if (checked) {
+													next.add(contribution.id);
+												} else {
+													next.delete(contribution.id);
+												}
+												return next;
+											});
+										}}
+									/>
+								</TableCell>
+								<TableCell>{contribution.participantName}</TableCell>
+								<TableCell>
+									{CONTRIBUTION_METHOD_LABEL[contribution.method]()}
+								</TableCell>
+								<TableCell>
+									<Amount value={contribution.amount} currency={currency} />
+								</TableCell>
+								<TableCell>
+									{new Date(contribution.submittedAt).toLocaleDateString()}
+								</TableCell>
+								<TableCell>
+									<div className="flex gap-2">
+										<Button
+											size="sm"
+											disabled={approveMutation.isPending}
+											onClick={() => approveMutation.mutate(contribution.id)}
+										>
+											{m.validation_approve_cta()}
+										</Button>
+										<Button
+											size="sm"
+											variant="outline"
+											onClick={() => setRejectTarget(contribution.id)}
+										>
+											{m.validation_reject_cta()}
+										</Button>
+									</div>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			)}
+
+			<Dialog
+				open={rejectTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) setRejectTarget(null);
+				}}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{m.validation_reject_dialog_title()}</DialogTitle>
+					</DialogHeader>
+					<div className="flex flex-col gap-2">
+						<label className="text-sm font-medium" htmlFor="reject-reason">
+							{m.validation_reject_reason_label()}
+						</label>
+						<Input
+							id="reject-reason"
+							value={rejectReason}
+							onChange={(event) => setRejectReason(event.target.value)}
+						/>
+					</div>
+					<DialogFooter>
+						<Button
+							onClick={() =>
+								rejectTarget &&
+								rejectMutation.mutate({
+									id: rejectTarget,
+									reason: rejectReason,
+								})
+							}
+							disabled={!rejectReason.trim() || rejectMutation.isPending}
+						>
+							{m.validation_reject_cta()}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

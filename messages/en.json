@@ -184,8 +184,9 @@
   "validation_reject_reason_label": "Reason",
   "validation_bulk_approve_cta": "Approve selected",
   "validation_table_member": "Member",
-  "validation_table_reference": "Reference",
   "validation_table_timestamp": "Submitted",
+  "validation_approve_error": "Failed to approve this contribution.",
+  "validation_reject_error": "Failed to reject this contribution.",
 
   "overview_title": "Overview",
   "overview_stats_participants_label": "Participants",

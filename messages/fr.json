@@ -184,8 +184,9 @@
   "validation_reject_reason_label": "Motif",
   "validation_bulk_approve_cta": "Approuver la sélection",
   "validation_table_member": "Membre",
-  "validation_table_reference": "Référence",
   "validation_table_timestamp": "Soumis le",
+  "validation_approve_error": "Échec de l'approbation de cette contribution.",
+  "validation_reject_error": "Échec du rejet de cette contribution.",
 
   "overview_title": "Aperçu",
   "overview_stats_participants_label": "Participants",
