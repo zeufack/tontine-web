@@ -186,9 +186,14 @@ const createTontineOnServer = createServerFn({ method: "POST" })
 			contributionFrequency: input.frequency,
 			durationType: input.durationType,
 			durationValue,
+			// `baseContributionAmount` — not `contributionAmount` — is the key
+			// CycleService.startCycle actually reads
+			// (`tontine.configuration?.baseContributionAmount`) to price every
+			// turn it creates; it also matches the key TontineType's own
+			// defaultConfiguration fixtures use.
 			configuration: {
 				currency: input.currency,
-				contributionAmount: input.contributionAmount,
+				baseContributionAmount: input.contributionAmount,
 			},
 		});
 		return toTontine(tontine, session.user.id);

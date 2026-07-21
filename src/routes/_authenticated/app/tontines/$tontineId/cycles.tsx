@@ -1,17 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarClock } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { StrategyExplainer } from "#/components/tontine/strategy-explainer.tsx";
 import { Amount } from "#/components/ui/amount.tsx";
 import { Badge } from "#/components/ui/badge.tsx";
+import { Button } from "#/components/ui/button.tsx";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#/components/ui/dialog.tsx";
 import { EmptyState } from "#/components/ui/empty-state.tsx";
+import { Input } from "#/components/ui/input.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
 import {
 	Table,
@@ -25,11 +39,14 @@ import {
 	type BeneficiaryStatus,
 	type Cycle,
 	type CycleStatus,
+	createCycle,
 	cycleQueries,
+	startCycle,
 	type Turn,
 	type TurnStatus,
 } from "#/features/cycles/api";
 import { tontineQueries } from "#/features/tontines/api";
+import { useTontineRole } from "#/features/tontines/use-tontine-role";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
@@ -97,12 +114,40 @@ const BENEFICIARY_STATUS_LABEL: Record<BeneficiaryStatus, () => string> = {
 
 function CyclesPage() {
 	const { tontineId } = Route.useParams();
+	// `cycle:manage` is only provable today for the tontine creator — see
+	// permissions.ts's documented gap (zeufack/totine#17).
+	const { isAdmin } = useTontineRole();
+	const queryClient = useQueryClient();
 
 	const { data: tontine } = useQuery(tontineQueries.detail(tontineId));
 	const { data: currentCycle, isPending: isCurrentPending } = useQuery(
 		cycleQueries.current(tontineId),
 	);
 	const { data: cycleHistory } = useQuery(cycleQueries.history(tontineId));
+
+	async function invalidateCycles() {
+		await Promise.all([
+			queryClient.invalidateQueries({
+				queryKey: ["tontine", tontineId, "cycle"],
+			}),
+			queryClient.invalidateQueries({
+				queryKey: ["tontine", tontineId, "cycles"],
+			}),
+		]);
+	}
+
+	const startMutation = useMutation({
+		mutationFn: startCycle,
+		onSuccess: async () => {
+			await invalidateCycles();
+			toast.success(m.cycles_start_success());
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.cycles_start_error(),
+			);
+		},
+	});
 
 	if (!tontine || isCurrentPending) {
 		return (
@@ -113,6 +158,10 @@ function CyclesPage() {
 		);
 	}
 
+	const pendingCycle = cycleHistory?.find(
+		(cycle) => cycle.status === "pending",
+	);
+
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-3">
@@ -120,17 +169,44 @@ function CyclesPage() {
 				<StrategyExplainer strategy={tontine.payoutStrategy} />
 			</div>
 
-			{!currentCycle?.cycle ? (
-				<EmptyState
-					icon={CalendarClock}
-					title={m.cycles_no_active_cycle_title()}
-					description={m.cycles_no_active_cycle_description()}
-				/>
-			) : (
+			{currentCycle?.cycle ? (
 				<CurrentCycleSection
 					cycle={currentCycle.cycle}
 					turns={currentCycle.turns}
 					currency={tontine.currency}
+				/>
+			) : pendingCycle ? (
+				<Card>
+					<CardHeader>
+						<CardTitle>
+							{m.cycles_pending_title({ number: pendingCycle.cycleNumber })}
+						</CardTitle>
+						<CardDescription>{m.cycles_pending_description()}</CardDescription>
+					</CardHeader>
+					{isAdmin && (
+						<CardContent>
+							<Button
+								disabled={startMutation.isPending}
+								onClick={() => startMutation.mutate(pendingCycle.id)}
+							>
+								{m.cycles_start_cta()}
+							</Button>
+						</CardContent>
+					)}
+				</Card>
+			) : (
+				<EmptyState
+					icon={CalendarClock}
+					title={m.cycles_no_active_cycle_title()}
+					description={m.cycles_no_active_cycle_description()}
+					action={
+						isAdmin ? (
+							<CreateCycleDialog
+								tontineId={tontineId}
+								onCreated={invalidateCycles}
+							/>
+						) : undefined
+					}
 				/>
 			)}
 
@@ -173,6 +249,62 @@ function CyclesPage() {
 				)}
 			</div>
 		</div>
+	);
+}
+
+function CreateCycleDialog({
+	tontineId,
+	onCreated,
+}: {
+	tontineId: string;
+	onCreated: () => Promise<void>;
+}) {
+	const [open, setOpen] = useState(false);
+	const [startDate, setStartDate] = useState(() =>
+		new Date().toISOString().slice(0, 10),
+	);
+
+	const createMutation = useMutation({
+		mutationFn: () => createCycle({ tontineId, startDate }),
+		onSuccess: async () => {
+			await onCreated();
+			setOpen(false);
+			toast.success(m.cycles_create_success());
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.cycles_create_error(),
+			);
+		},
+	});
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button size="sm">{m.cycles_create_cta()}</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>{m.cycles_create_dialog_title()}</DialogTitle>
+					<DialogDescription>
+						{m.cycles_create_dialog_description()}
+					</DialogDescription>
+				</DialogHeader>
+				<Input
+					type="date"
+					value={startDate}
+					onChange={(event) => setStartDate(event.target.value)}
+				/>
+				<DialogFooter>
+					<Button
+						disabled={createMutation.isPending}
+						onClick={() => createMutation.mutate()}
+					>
+						{m.cycles_create_submit_cta()}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }
 

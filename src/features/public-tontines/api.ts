@@ -27,7 +27,9 @@ const fetchPublicTontinesFromBackend = createServerFn({
 }).handler(async (): Promise<PublicTontineSummary[]> => {
 	const tontines = await fetchPublicTontines();
 	return tontines.map((tontine) => {
-		const rawAmount = tontine.configuration?.contributionAmount;
+		// `baseContributionAmount` is the key CycleService.startCycle (and
+		// TontineType's own defaultConfiguration fixtures) actually use.
+		const rawAmount = tontine.configuration?.baseContributionAmount;
 		const rawCurrency = tontine.configuration?.currency;
 		return {
 			id: tontine.id,

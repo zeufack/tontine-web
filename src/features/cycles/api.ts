@@ -3,8 +3,10 @@ import { createServerFn } from "@tanstack/react-start";
 import {
 	type BackendCycle,
 	type CycleStatus,
+	createCycle as createCycleOnBackend,
 	fetchCurrentCycle,
 	fetchCyclesForTontine,
+	startCycle as startCycleOnBackend,
 } from "#/lib/backend-client/cycles";
 import {
 	type BackendTurn,
@@ -127,6 +129,38 @@ const fetchCycleHistoryFromBackend = createServerFn({ method: "GET" })
 
 export async function listCycleHistory(tontineId: string): Promise<Cycle[]> {
 	return fetchCycleHistoryFromBackend({ data: tontineId });
+}
+
+export interface CreateCycleInput {
+	tontineId: string;
+	/** ISO date string (yyyy-mm-dd). */
+	startDate: string;
+}
+
+const createCycleOnServer = createServerFn({ method: "POST" })
+	.validator((input: CreateCycleInput) => input)
+	.handler(async ({ data: input }): Promise<Cycle> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const cycle = await createCycleOnBackend(session.accessToken, input);
+		return toCycle(cycle);
+	});
+
+export async function createCycle(input: CreateCycleInput): Promise<Cycle> {
+	return createCycleOnServer({ data: input });
+}
+
+const startCycleOnServer = createServerFn({ method: "POST" })
+	.validator((cycleId: string) => cycleId)
+	.handler(async ({ data: cycleId }): Promise<Cycle> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const cycle = await startCycleOnBackend(session.accessToken, cycleId);
+		return toCycle(cycle);
+	});
+
+export async function startCycle(cycleId: string): Promise<Cycle> {
+	return startCycleOnServer({ data: cycleId });
 }
 
 export const cycleQueries = {
