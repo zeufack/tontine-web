@@ -1,19 +1,10 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { getTontineMembershipStub } from "#/features/tontines/api";
-import type { MembershipRole } from "#/lib/mock-data/schemas";
+import { getTontineMembership } from "#/features/tontines/api";
 
 export const Route = createFileRoute("/_authenticated/app/tontines/$tontineId")(
 	{
-		validateSearch: (search: Record<string, unknown>) => ({
-			role:
-				search.role === "admin" || search.role === "member"
-					? (search.role as MembershipRole)
-					: undefined,
-		}),
-		beforeLoad: async ({ params, search }) => ({
-			membership: await getTontineMembershipStub(params.tontineId, {
-				overrideRole: search.role,
-			}),
+		beforeLoad: async ({ params }) => ({
+			membership: await getTontineMembership(params.tontineId),
 		}),
 		component: TontineShell,
 	},
@@ -26,7 +17,11 @@ function TontineShell() {
 	return (
 		<div className="p-8">
 			<nav className="flex gap-4 border-b pb-4 text-sm font-medium">
-				<Link to="/app/tontines/$tontineId/overview" params={{ tontineId }}>
+				<Link
+					to="/app/tontines/$tontineId/overview"
+					params={{ tontineId }}
+					search={{ unauthorized: false }}
+				>
 					Overview
 				</Link>
 				<Link to="/app/tontines/$tontineId/members" params={{ tontineId }}>
@@ -41,7 +36,7 @@ function TontineShell() {
 				<Link to="/app/tontines/$tontineId/cycles" params={{ tontineId }}>
 					Cycles
 				</Link>
-				{membership.role === "admin" && (
+				{membership.isAdmin && (
 					<>
 						<Link
 							to="/app/tontines/$tontineId/validation"

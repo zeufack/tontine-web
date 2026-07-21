@@ -109,7 +109,7 @@ function PublicTontineCard({
 				await navigate({
 					to: "/app/tontines/$tontineId/overview",
 					params: { tontineId: tontine.id },
-					search: { unauthorized: false, role: undefined },
+					search: { unauthorized: false },
 				});
 			} else {
 				toast.success(m.join_success_pending());

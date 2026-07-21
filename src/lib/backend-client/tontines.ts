@@ -43,11 +43,27 @@ export const tontineStatusSchema = z.enum([
 ]);
 export type TontineStatus = z.infer<typeof tontineStatusSchema>;
 
+export const participantStatusSchema = z.enum([
+	"pending",
+	"active",
+	"suspended",
+	"withdrawn",
+	"completed",
+]);
+export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
+
+// Only what's needed to resolve "is the caller an active participant" —
+// the real Participant is much larger (positionConfiguration, preferences,
+// statistics, ...).
+const backendParticipantSummarySchema = z.object({
+	status: participantStatusSchema,
+	user: z.object({ id: z.string() }).nullish(),
+});
+
 // A caller-owned/joined tontine, as returned by GET /tontines and
-// GET /tontines/:id. `participants` is only validated shallowly here — it
-// crosses into a plain summary type (participantCount) before leaving the
-// server function boundary, since createServerFn requires its return value
-// to be a concretely-typed serializable shape.
+// GET /tontines/:id. `creator`/`public`/`participants` exist specifically so
+// the frontend can resolve the caller's own role — see
+// features/tontines/permissions.ts.
 export const backendTontineSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -55,7 +71,9 @@ export const backendTontineSchema = z.object({
 	contributionFrequency: contributionFrequencySchema,
 	configuration: z.record(z.string(), z.unknown()).nullish(),
 	tontineType: z.object({ id: z.string(), name: z.string() }),
-	participants: z.array(z.unknown()),
+	creator: z.object({ id: z.string() }).nullish(),
+	public: z.boolean(),
+	participants: z.array(backendParticipantSummarySchema),
 });
 export type BackendTontine = z.infer<typeof backendTontineSchema>;
 
@@ -154,15 +172,6 @@ export async function createTontine(
 	});
 	return backendTontineSchema.parse(raw);
 }
-
-export const participantStatusSchema = z.enum([
-	"pending",
-	"active",
-	"suspended",
-	"withdrawn",
-	"completed",
-]);
-export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
 
 // Only the fields this app needs are validated — the real response is a full
 // Participant (positionConfiguration, preferences, statistics, nested

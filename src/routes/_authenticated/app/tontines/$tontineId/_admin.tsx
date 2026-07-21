@@ -4,7 +4,7 @@ export const Route = createFileRoute(
 	"/_authenticated/app/tontines/$tontineId/_admin",
 )({
 	beforeLoad: ({ context, params }) => {
-		if (context.membership.role !== "admin") {
+		if (!context.membership.isAdmin) {
 			throw redirect({
 				to: "/app/tontines/$tontineId/overview",
 				params: { tontineId: params.tontineId },

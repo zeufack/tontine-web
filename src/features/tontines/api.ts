@@ -15,13 +15,23 @@ import {
 	type TontineStatistics,
 	type TontineStatus,
 } from "#/lib/backend-client/tontines";
-import type { MembershipRole, PayoutStrategy } from "#/lib/mock-data/schemas";
+import type { PayoutStrategy } from "#/lib/mock-data/schemas";
 import { readSessionCookie } from "#/lib/session-cookie";
+import {
+	resolveTontinePermissions,
+	type TontinePermission,
+	type TontineRoleLabel,
+} from "./permissions";
 
 export type { TontineStatus, TontineStatistics };
+export type { TontinePermission, TontineRoleLabel } from "./permissions";
 
 export interface TontineMembership {
-	role: MembershipRole;
+	role: TontineRoleLabel;
+	/** True only for `role === "creator"` — the only bundle this app can
+	 * currently prove carries admin-tier permissions (see permissions.ts). */
+	isAdmin: boolean;
+	permissions: TontinePermission[];
 }
 
 export interface Tontine {
@@ -39,10 +49,25 @@ export interface Tontine {
 	 * free-form JSON. Defaults to XAF (this app's primary market currency)
 	 * when absent, matching the existing convention in contributions.tsx. */
 	currency: string;
+	role: TontineRoleLabel;
+	permissions: TontinePermission[];
 }
 
-function toTontine(backendTontine: BackendTontine): Tontine {
+function toTontine(
+	backendTontine: BackendTontine,
+	currentUserId: string,
+): Tontine {
 	const rawCurrency = backendTontine.configuration?.currency;
+	const isActiveParticipant = backendTontine.participants.some(
+		(participant) =>
+			participant.status === "active" && participant.user?.id === currentUserId,
+	);
+	const resolved = resolveTontinePermissions({
+		currentUserId,
+		creatorId: backendTontine.creator?.id ?? null,
+		isActiveParticipant,
+		isPublic: backendTontine.public,
+	});
 	return {
 		id: backendTontine.id,
 		name: backendTontine.name,
@@ -51,6 +76,8 @@ function toTontine(backendTontine: BackendTontine): Tontine {
 		participantCount: backendTontine.participants.length,
 		payoutStrategy: backendTontine.tontineType.name as PayoutStrategy,
 		currency: typeof rawCurrency === "string" ? rawCurrency : "XAF",
+		role: resolved.role,
+		permissions: resolved.permissions,
 	};
 }
 
@@ -59,7 +86,7 @@ const fetchMyTontinesFromBackend = createServerFn({ method: "GET" }).handler(
 		const session = readSessionCookie();
 		if (!session) throw new Error("Not authenticated");
 		const tontines = await fetchMyTontines(session.accessToken);
-		return tontines.map(toTontine);
+		return tontines.map((tontine) => toTontine(tontine, session.user.id));
 	},
 );
 
@@ -73,7 +100,7 @@ const fetchTontineDetailFromBackend = createServerFn({ method: "GET" })
 		const session = readSessionCookie();
 		if (!session) throw new Error("Not authenticated");
 		const tontine = await fetchTontineById(session.accessToken, tontineId);
-		return toTontine(tontine);
+		return toTontine(tontine, session.user.id);
 	});
 
 export async function getTontineDetail(tontineId: string): Promise<Tontine> {
@@ -103,7 +130,7 @@ const activateTontineOnServer = createServerFn({ method: "POST" })
 			session.accessToken,
 			tontineId,
 		);
-		return toTontine(tontine);
+		return toTontine(tontine, session.user.id);
 	});
 
 export async function activateTontine(tontineId: string): Promise<Tontine> {
@@ -164,7 +191,7 @@ const createTontineOnServer = createServerFn({ method: "POST" })
 				contributionAmount: input.contributionAmount,
 			},
 		});
-		return toTontine(tontine);
+		return toTontine(tontine, session.user.id);
 	});
 
 export async function createTontine(
@@ -190,16 +217,19 @@ export async function joinTontine(
 }
 
 /**
- * TODO(api): replace with a real membership/permission fetch (#26) —
- * `overrideRole` is a dev-only escape hatch (wired to a `?role=` search
- * param) for manually exercising both RBAC branches without real multi-user
- * auth — see the per-tontine `_admin` guard.
+ * Real per-tontine membership/permission resolution — replaces the old
+ * `getTontineMembershipStub`. See permissions.ts for exactly which roles
+ * this can and can't detect today.
  */
-export async function getTontineMembershipStub(
-	_tontineId: string,
-	options?: { overrideRole?: MembershipRole },
+export async function getTontineMembership(
+	tontineId: string,
 ): Promise<TontineMembership> {
-	return { role: options?.overrideRole ?? "admin" };
+	const tontine = await getTontineDetail(tontineId);
+	return {
+		role: tontine.role,
+		isAdmin: tontine.role === "creator",
+		permissions: tontine.permissions,
+	};
 }
 
 export const tontineQueries = {
@@ -223,7 +253,7 @@ export const tontineQueries = {
 
 	/**
 	 * Not yet consumed by a route — the per-tontine `beforeLoad` guard calls
-	 * `getTontineMembershipStub` directly rather than through the Query cache,
+	 * `getTontineMembership` directly rather than through the Query cache,
 	 * since route guards run once per navigation rather than needing
 	 * reactive re-fetching. Kept here for a future component (e.g. a live
 	 * role indicator) that wants cache-backed access to the same data.
@@ -231,6 +261,6 @@ export const tontineQueries = {
 	membership: (tontineId: string) =>
 		queryOptions({
 			queryKey: ["tontine", tontineId, "membership"] as const,
-			queryFn: () => getTontineMembershipStub(tontineId),
+			queryFn: () => getTontineMembership(tontineId),
 		}),
 };
