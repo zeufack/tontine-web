@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Users2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Amount } from "#/components/ui/amount.tsx";
 import { Badge } from "#/components/ui/badge.tsx";
@@ -18,7 +19,9 @@ import {
 	type PublicTontineSummary,
 	publicTontineQueries,
 } from "#/features/public-tontines/api";
+import { joinTontine } from "#/features/tontines/api";
 import type { ContributionFrequency } from "#/lib/backend-client/tontines";
+import { useSession } from "#/lib/session-client";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/public-tontines")({
@@ -37,6 +40,7 @@ const FREQUENCY_LABEL: Record<ContributionFrequency, () => string> = {
 
 function PublicTontinesPage() {
 	const { data: tontines, isPending } = useQuery(publicTontineQueries.all());
+	const { data: session } = useSession();
 
 	return (
 		<div className="mx-auto flex max-w-4xl flex-col gap-6 p-8">
@@ -74,7 +78,11 @@ function PublicTontinesPage() {
 			{!isPending && tontines && tontines.length > 0 && (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{tontines.map((tontine) => (
-						<PublicTontineCard key={tontine.id} tontine={tontine} />
+						<PublicTontineCard
+							key={tontine.id}
+							tontine={tontine}
+							isAuthenticated={!!session}
+						/>
 					))}
 				</div>
 			)}
@@ -82,7 +90,36 @@ function PublicTontinesPage() {
 	);
 }
 
-function PublicTontineCard({ tontine }: { tontine: PublicTontineSummary }) {
+function PublicTontineCard({
+	tontine,
+	isAuthenticated,
+}: {
+	tontine: PublicTontineSummary;
+	isAuthenticated: boolean;
+}) {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const joinMutation = useMutation({
+		mutationFn: () => joinTontine(tontine.id),
+		onSuccess: async (result) => {
+			await queryClient.invalidateQueries({ queryKey: ["tontines", "mine"] });
+			if (result.status === "active") {
+				toast.success(m.join_success_active({ name: tontine.name }));
+				await navigate({
+					to: "/app/tontines/$tontineId/overview",
+					params: { tontineId: tontine.id },
+					search: { unauthorized: false, role: undefined },
+				});
+			} else {
+				toast.success(m.join_success_pending());
+			}
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : m.join_error());
+		},
+	});
+
 	return (
 		<Card>
 			<CardHeader>
@@ -103,11 +140,21 @@ function PublicTontineCard({ tontine }: { tontine: PublicTontineSummary }) {
 				</p>
 			</CardContent>
 			<CardFooter>
-				<Button asChild size="sm" variant="outline">
-					<Link to="/login" search={{ redirect: "/public-tontines" }}>
-						{m.public_tontines_login_cta()}
-					</Link>
-				</Button>
+				{isAuthenticated ? (
+					<Button
+						size="sm"
+						disabled={joinMutation.isPending}
+						onClick={() => joinMutation.mutate()}
+					>
+						{m.join_cta()}
+					</Button>
+				) : (
+					<Button asChild size="sm" variant="outline">
+						<Link to="/login" search={{ redirect: "/public-tontines" }}>
+							{m.public_tontines_login_cta()}
+						</Link>
+					</Button>
+				)}
 			</CardFooter>
 		</Card>
 	);

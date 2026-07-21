@@ -154,3 +154,38 @@ export async function createTontine(
 	});
 	return backendTontineSchema.parse(raw);
 }
+
+export const participantStatusSchema = z.enum([
+	"pending",
+	"active",
+	"suspended",
+	"withdrawn",
+	"completed",
+]);
+export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
+
+// Only the fields this app needs are validated — the real response is a full
+// Participant (positionConfiguration, preferences, statistics, nested
+// tontine/user, ...) that zod silently strips down to this shape.
+const joinTontineResultSchema = z.object({
+	id: z.string(),
+	status: participantStatusSchema,
+});
+export type JoinTontineResult = z.infer<typeof joinTontineResultSchema>;
+
+/**
+ * `active` for a public tontine, `pending` for a private one — decided
+ * server-side off `tontine.public`, not something the caller specifies.
+ * Throws (via apiFetch) on the backend's own 400/404/409s: tontine not
+ * accepting new participants, tontine not found, or already a participant.
+ */
+export async function joinTontine(
+	accessToken: string,
+	tontineId: string,
+): Promise<JoinTontineResult> {
+	const raw = await apiFetch("/tontines/join", accessToken, {
+		method: "POST",
+		body: JSON.stringify({ tontineId }),
+	});
+	return joinTontineResultSchema.parse(raw);
+}

@@ -42,6 +42,16 @@
   "public_tontines_register_cta": "Create an account",
   "public_tontines_load_error": "Failed to load public tontines.",
 
+  "join_cta": "Join",
+  "join_success_active": "You've joined {name}.",
+  "join_success_active_generic": "You've joined the tontine.",
+  "join_success_pending": "Request sent — pending approval.",
+  "join_error": "Failed to join this tontine.",
+  "join_by_id_dialog_title": "Join a tontine",
+  "join_by_id_dialog_description": "Paste the tontine ID you were given. Public tontines are joined instantly; private ones need approval.",
+  "join_by_id_label": "Tontine ID",
+  "join_by_id_submit_cta": "Join",
+
   "notifications_title": "Notification preferences",
   "notifications_channels_title": "Channels",
   "notifications_channels_description": "Choose how you want to be notified.",
@@ -70,6 +80,8 @@
   "dashboard_empty_title": "No tontines yet",
   "dashboard_empty_description": "Create your first tontine to get started.",
   "dashboard_empty_cta": "Create a tontine",
+  "dashboard_browse_public_cta": "Browse public tontines",
+  "dashboard_join_cta": "Join a tontine",
   "dashboard_participant_count": "{count} participants",
   "dashboard_view_details_cta": "View details",
 

@@ -42,6 +42,16 @@
   "public_tontines_register_cta": "Créer un compte",
   "public_tontines_load_error": "Échec du chargement des tontines publiques.",
 
+  "join_cta": "Rejoindre",
+  "join_success_active": "Vous avez rejoint {name}.",
+  "join_success_active_generic": "Vous avez rejoint la tontine.",
+  "join_success_pending": "Demande envoyée — en attente d'approbation.",
+  "join_error": "Échec de l'adhésion à cette tontine.",
+  "join_by_id_dialog_title": "Rejoindre une tontine",
+  "join_by_id_dialog_description": "Collez l'identifiant de la tontine qui vous a été communiqué. Les tontines publiques sont rejointes instantanément ; les tontines privées nécessitent une approbation.",
+  "join_by_id_label": "Identifiant de la tontine",
+  "join_by_id_submit_cta": "Rejoindre",
+
   "notifications_title": "Préférences de notification",
   "notifications_channels_title": "Canaux",
   "notifications_channels_description": "Choisissez comment vous souhaitez être notifié.",
@@ -70,6 +80,8 @@
   "dashboard_empty_title": "Aucune tontine pour l'instant",
   "dashboard_empty_description": "Créez votre première tontine pour commencer.",
   "dashboard_empty_cta": "Créer une tontine",
+  "dashboard_browse_public_cta": "Parcourir les tontines publiques",
+  "dashboard_join_cta": "Rejoindre une tontine",
   "dashboard_participant_count": "{count} participants",
   "dashboard_view_details_cta": "Voir les détails",
 

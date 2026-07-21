@@ -10,6 +10,8 @@ import {
 	fetchTontineById,
 	fetchTontineStatistics,
 	fetchTontineTypes,
+	type JoinTontineResult,
+	joinTontine as joinTontineOnBackend,
 	type TontineStatistics,
 	type TontineStatus,
 } from "#/lib/backend-client/tontines";
@@ -169,6 +171,22 @@ export async function createTontine(
 	input: CreateTontineInput,
 ): Promise<Tontine> {
 	return createTontineOnServer({ data: input });
+}
+
+export type { JoinTontineResult };
+
+const joinTontineOnServer = createServerFn({ method: "POST" })
+	.validator((tontineId: string) => tontineId)
+	.handler(async ({ data: tontineId }): Promise<JoinTontineResult> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		return joinTontineOnBackend(session.accessToken, tontineId);
+	});
+
+export async function joinTontine(
+	tontineId: string,
+): Promise<JoinTontineResult> {
+	return joinTontineOnServer({ data: tontineId });
 }
 
 /**
