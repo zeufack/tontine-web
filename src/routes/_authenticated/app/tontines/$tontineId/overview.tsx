@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { TontineStatusBadge } from "#/components/tontine/tontine-status-badge.tsx";
 import { Amount } from "#/components/ui/amount.tsx";
+import { Button } from "#/components/ui/button.tsx";
 import {
 	Card,
 	CardContent,
@@ -11,11 +13,10 @@ import {
 	CardTitle,
 } from "#/components/ui/card.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
-import { cycleQueries } from "#/features/cycles/api";
-import { memberQueries } from "#/features/members/api";
-import { tontineQueries } from "#/features/tontines/api";
-import { CURRENT_USER_ID } from "#/lib/mock-data/store";
+import { activateTontine, tontineQueries } from "#/features/tontines/api";
 import { m } from "#/paraglide/messages";
+
+const MINIMUM_PARTICIPANTS_TO_ACTIVATE = 2;
 
 export const Route = createFileRoute(
 	"/_authenticated/app/tontines/$tontineId/overview",
@@ -30,6 +31,7 @@ function OverviewPage() {
 	const { unauthorized } = Route.useSearch();
 	const { tontineId } = Route.useParams();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		if (unauthorized) {
@@ -44,17 +46,25 @@ function OverviewPage() {
 	}, [unauthorized, navigate, tontineId]);
 
 	const { data: tontine } = useQuery(tontineQueries.detail(tontineId));
-	const { data: cycle } = useQuery(
-		cycleQueries.current(tontineId, tontine?.payoutStrategy),
-	);
-	const { data: members } = useQuery(memberQueries.list(tontineId));
+	const { data: statistics } = useQuery(tontineQueries.statistics(tontineId));
 
-	function memberName(memberId: string): string {
-		if (memberId === CURRENT_USER_ID) return m.overview_beneficiary_you();
-		return members?.find((member) => member.id === memberId)?.name ?? memberId;
-	}
+	const activateMutation = useMutation({
+		mutationFn: () => activateTontine(tontineId),
+		onSuccess: async () => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["tontine", tontineId] }),
+				queryClient.invalidateQueries({ queryKey: ["tontines", "mine"] }),
+			]);
+			toast.success(m.overview_activate_success());
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : m.overview_activate_error(),
+			);
+		},
+	});
 
-	if (!tontine || !cycle) {
+	if (!tontine || !statistics) {
 		return (
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Skeleton className="h-28" />
@@ -65,52 +75,60 @@ function OverviewPage() {
 		);
 	}
 
-	const { strategyState } = cycle;
-
-	let beneficiaryValue: string;
-	if (strategyState.kind === "rotating") {
-		beneficiaryValue = memberName(strategyState.currentBeneficiaryMemberId);
-	} else if (strategyState.kind === "lottery") {
-		beneficiaryValue = strategyState.drawDate
-			? m.overview_next_draw_label({
-					date: new Date(strategyState.drawDate).toLocaleDateString(),
-				})
-			: m.overview_beneficiary_unknown();
-	} else {
-		beneficiaryValue = strategyState.currentHighestBidderMemberId
-			? m.overview_highest_bidder_label({
-					name: memberName(strategyState.currentHighestBidderMemberId),
-				})
-			: m.overview_no_bids_yet();
-	}
-
-	let nextTurnValue: string | undefined;
-	if (strategyState.kind === "rotating" && strategyState.order.length > 0) {
-		const currentIndex = strategyState.order.findIndex(
-			(entry) => entry.memberId === strategyState.currentBeneficiaryMemberId,
-		);
-		const nextEntry =
-			strategyState.order[(currentIndex + 1) % strategyState.order.length];
-		if (nextEntry) {
-			nextTurnValue = m.overview_next_in_order_label({
-				name: memberName(nextEntry.memberId),
-			});
-		}
-	}
+	const canActivate =
+		tontine.status === "draft" &&
+		tontine.participantCount >= MINIMUM_PARTICIPANTS_TO_ACTIVATE;
 
 	return (
 		<div className="flex flex-col gap-4">
-			<h2 className="text-xl font-semibold">{m.overview_title()}</h2>
+			<div className="flex items-center justify-between gap-4">
+				<div className="flex items-center gap-3">
+					<h2 className="text-xl font-semibold">{m.overview_title()}</h2>
+					<TontineStatusBadge status={tontine.status} />
+				</div>
+				{tontine.status === "draft" && (
+					<div className="flex flex-col items-end gap-1">
+						<Button
+							size="sm"
+							disabled={!canActivate || activateMutation.isPending}
+							onClick={() => activateMutation.mutate()}
+						>
+							{m.overview_activate_cta()}
+						</Button>
+						{!canActivate && (
+							<span className="text-xs text-muted-foreground">
+								{m.overview_activate_requires_participants({
+									count: MINIMUM_PARTICIPANTS_TO_ACTIVATE,
+								})}
+							</span>
+						)}
+					</div>
+				)}
+			</div>
+
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-sm text-muted-foreground">
-							{m.overview_pot_balance_label()}
+							{m.overview_stats_participants_label()}
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="text-2xl font-semibold">
+							{statistics.totalParticipants}
+						</p>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-sm text-muted-foreground">
+							{m.overview_stats_total_contributed_label()}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<Amount
-							value={cycle.potTotal}
+							value={statistics.totalContributed}
 							currency={tontine.currency}
 							className="text-2xl"
 						/>
@@ -120,14 +138,12 @@ function OverviewPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-sm text-muted-foreground">
-							{m.overview_current_cycle_label({ number: cycle.number })}
+							{m.overview_stats_active_contributions_label()}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-2xl font-semibold">
-							{cycle.status === "active"
-								? m.cycle_status_active()
-								: m.cycle_status_closed()}
+							{statistics.activeContributions}
 						</p>
 					</CardContent>
 				</Card>
@@ -135,26 +151,15 @@ function OverviewPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-sm text-muted-foreground">
-							{m.overview_current_beneficiary_label()}
+							{m.overview_stats_pending_contributions_label()}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-lg font-semibold">{beneficiaryValue}</p>
+						<p className="text-2xl font-semibold">
+							{statistics.pendingContributions}
+						</p>
 					</CardContent>
 				</Card>
-
-				{nextTurnValue && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-sm text-muted-foreground">
-								{m.rotating_order_title()}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-lg font-semibold">{nextTurnValue}</p>
-						</CardContent>
-					</Card>
-				)}
 			</div>
 		</div>
 	);

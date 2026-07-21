@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { ChevronDownIcon } from "lucide-react";
-import { RoleBadge } from "#/components/tontine/role-badge.tsx";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -53,15 +52,13 @@ function TontineSwitcher() {
 			<DropdownMenuContent align="start">
 				<DropdownMenuLabel>{m.tontine_switcher_label()}</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				{tontines.map(({ tontine, membership }) => (
+				{tontines.map((tontine) => (
 					<DropdownMenuItem key={tontine.id} asChild>
 						<Link
 							to="/app/tontines/$tontineId/overview"
 							params={{ tontineId: tontine.id }}
-							className="flex items-center justify-between gap-3"
 						>
-							<span>{tontine.name}</span>
-							<RoleBadge role={membership.role} />
+							{tontine.name}
 						</Link>
 					</DropdownMenuItem>
 				))}
