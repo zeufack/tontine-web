@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -109,6 +109,12 @@ function LoginPage() {
 					</Button>
 				</form>
 			</Form>
+			<Link
+				to="/public-tontines"
+				className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+			>
+				{m.login_browse_public_tontines_link()}
+			</Link>
 		</div>
 	);
 }

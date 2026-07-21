@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PublicTontinesRouteImport } from './routes/public-tontines'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as StyleGuideRouteImport } from './routes/style-guide'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/_platformStaff'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppHomeRouteImport } from './routes/_authenticated/app/home'
+import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app/notifications'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app/profile'
 import { Route as AuthenticatedPlatformStaffAdminIndexRouteImport } from './routes/_authenticated/_platformStaff/admin/index'
 import { Route as AuthenticatedPlatformStaffAdminTontinesRouteImport } from './routes/_authenticated/_platformStaff/admin/tontines'
@@ -43,6 +45,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicTontinesRoute = PublicTontinesRouteImport.update({
+  id: '/public-tontines',
+  path: '/public-tontines',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -72,6 +79,12 @@ const AuthenticatedAppHomeRoute = AuthenticatedAppHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppNotificationsRoute =
+  AuthenticatedAppNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -164,10 +177,12 @@ const AuthenticatedAppTontinesTontineIdAdminValidationRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/public-tontines': typeof PublicTontinesRoute
   '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/home': typeof AuthenticatedAppHomeRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
@@ -184,10 +199,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/public-tontines': typeof PublicTontinesRoute
   '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/home': typeof AuthenticatedAppHomeRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
@@ -206,11 +223,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/public-tontines': typeof PublicTontinesRoute
   '/register': typeof RegisterRoute
   '/style-guide': typeof StyleGuideRoute
   '/_authenticated/_platformStaff': typeof AuthenticatedPlatformStaffRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/home': typeof AuthenticatedAppHomeRoute
+  '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/_platformStaff/admin/tontines': typeof AuthenticatedPlatformStaffAdminTontinesRoute
   '/_authenticated/_platformStaff/admin/users': typeof AuthenticatedPlatformStaffAdminUsersRoute
@@ -230,10 +249,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/public-tontines'
     | '/register'
     | '/style-guide'
     | '/app'
     | '/app/home'
+    | '/app/notifications'
     | '/app/profile'
     | '/admin/tontines'
     | '/admin/users'
@@ -250,10 +271,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/public-tontines'
     | '/register'
     | '/style-guide'
     | '/app'
     | '/app/home'
+    | '/app/notifications'
     | '/app/profile'
     | '/admin/tontines'
     | '/admin/users'
@@ -271,11 +294,13 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/public-tontines'
     | '/register'
     | '/style-guide'
     | '/_authenticated/_platformStaff'
     | '/_authenticated/app'
     | '/_authenticated/app/home'
+    | '/_authenticated/app/notifications'
     | '/_authenticated/app/profile'
     | '/_authenticated/_platformStaff/admin/tontines'
     | '/_authenticated/_platformStaff/admin/users'
@@ -295,6 +320,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PublicTontinesRoute: typeof PublicTontinesRoute
   RegisterRoute: typeof RegisterRoute
   StyleGuideRoute: typeof StyleGuideRoute
 }
@@ -320,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/public-tontines': {
+      id: '/public-tontines'
+      path: '/public-tontines'
+      fullPath: '/public-tontines'
+      preLoaderRoute: typeof PublicTontinesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -355,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/app/home'
       preLoaderRoute: typeof AuthenticatedAppHomeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/notifications': {
+      id: '/_authenticated/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/profile': {
@@ -519,6 +559,7 @@ const AuthenticatedAppTontinesTontineIdRouteWithChildren =
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppHomeRoute: typeof AuthenticatedAppHomeRoute
+  AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppTontinesTontineIdRoute: typeof AuthenticatedAppTontinesTontineIdRouteWithChildren
   AuthenticatedAppTontinesNewRoute: typeof AuthenticatedAppTontinesNewRoute
@@ -526,6 +567,7 @@ interface AuthenticatedAppRouteChildren {
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppHomeRoute: AuthenticatedAppHomeRoute,
+  AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppTontinesTontineIdRoute:
     AuthenticatedAppTontinesTontineIdRouteWithChildren,
@@ -553,6 +595,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  PublicTontinesRoute: PublicTontinesRoute,
   RegisterRoute: RegisterRoute,
   StyleGuideRoute: StyleGuideRoute,
 }

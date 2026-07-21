@@ -26,6 +26,7 @@ function UserAppShell() {
 					<nav className="flex gap-4 text-sm font-medium">
 						<Link to="/app/home">{m.nav_dashboard_link()}</Link>
 						<Link to="/app/profile">{m.nav_profile_link()}</Link>
+						<Link to="/app/notifications">{m.nav_notifications_link()}</Link>
 					</nav>
 					<TontineSwitcher />
 				</div>
