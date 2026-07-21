@@ -1,51 +1,139 @@
 import { queryOptions } from "@tanstack/react-query";
-import { simulateNetwork } from "#/lib/mock-data/delay";
-import type { Cycle, PayoutStrategy } from "#/lib/mock-data/schemas";
+import { createServerFn } from "@tanstack/react-start";
 import {
-	mockStore,
-	submitBid as submitBidInStore,
-} from "#/lib/mock-data/store";
+	type BackendCycle,
+	type CycleStatus,
+	fetchCurrentCycle,
+	fetchCyclesForTontine,
+} from "#/lib/backend-client/cycles";
+import {
+	type BackendTurn,
+	type BeneficiaryStatus,
+	fetchTurnsForCycle,
+	type TurnStatus,
+} from "#/lib/backend-client/turns";
+import { readSessionCookie } from "#/lib/session-cookie";
+
+export type { CycleStatus, TurnStatus, BeneficiaryStatus };
+
+export interface Cycle {
+	id: string;
+	cycleNumber: number;
+	status: CycleStatus;
+	startDate: string;
+	endDate: string | null;
+	totalContributions: number;
+	totalDistributed: number;
+	participantCount: number;
+	turnCount: number;
+	averageContribution: number;
+	completionPercentage: number;
+}
+
+export interface Turn {
+	id: string;
+	turnNumber: number;
+	scheduledDate: string;
+	status: TurnStatus;
+	contributionAmount: number;
+	payoutAmount: number | null;
+	participantName: string | null;
+	beneficiaryStatus: BeneficiaryStatus | null;
+	amountReceived: number | null;
+}
+
+function toCycle(backendCycle: BackendCycle): Cycle {
+	return {
+		id: backendCycle.id,
+		cycleNumber: backendCycle.cycleNumber,
+		status: backendCycle.status,
+		startDate: backendCycle.startDate,
+		endDate: backendCycle.endDate,
+		totalContributions: backendCycle.statistics.totalContributions,
+		totalDistributed: backendCycle.statistics.totalDistributed,
+		participantCount: backendCycle.statistics.participantCount,
+		turnCount: backendCycle.statistics.turnCount,
+		averageContribution: backendCycle.statistics.averageContribution,
+		completionPercentage: backendCycle.statistics.completionPercentage,
+	};
+}
+
+function toTurn(backendTurn: BackendTurn): Turn {
+	const user = backendTurn.participant?.user;
+	const participantName = user
+		? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || null
+		: null;
+	return {
+		id: backendTurn.id,
+		turnNumber: backendTurn.turnNumber,
+		scheduledDate: backendTurn.scheduledDate,
+		status: backendTurn.status,
+		contributionAmount: backendTurn.contributionAmount,
+		payoutAmount: backendTurn.payoutAmount,
+		participantName,
+		beneficiaryStatus: backendTurn.beneficiary?.status ?? null,
+		amountReceived: backendTurn.beneficiary?.amountReceived ?? null,
+	};
+}
+
+export interface CurrentCycleView {
+	cycle: Cycle | null;
+	turns: Turn[];
+}
+
+const fetchCurrentCycleFromBackend = createServerFn({ method: "GET" })
+	.validator((tontineId: string) => tontineId)
+	.handler(async ({ data: tontineId }): Promise<CurrentCycleView> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+
+		const backendCycle = await fetchCurrentCycle(
+			session.accessToken,
+			tontineId,
+		);
+		if (!backendCycle) {
+			return { cycle: null, turns: [] };
+		}
+
+		const backendTurns = await fetchTurnsForCycle(
+			session.accessToken,
+			backendCycle.id,
+		);
+		return {
+			cycle: toCycle(backendCycle),
+			turns: backendTurns
+				.map(toTurn)
+				.sort((a, b) => a.turnNumber - b.turnNumber),
+		};
+	});
 
 export async function getCurrentCycle(
 	tontineId: string,
-): Promise<Cycle | undefined> {
-	const cycle = mockStore.cycles.find((c) => c.tontineId === tontineId);
-	return simulateNetwork(cycle);
+): Promise<CurrentCycleView> {
+	return fetchCurrentCycleFromBackend({ data: tontineId });
 }
+
+const fetchCycleHistoryFromBackend = createServerFn({ method: "GET" })
+	.validator((tontineId: string) => tontineId)
+	.handler(async ({ data: tontineId }): Promise<Cycle[]> => {
+		const session = readSessionCookie();
+		if (!session) throw new Error("Not authenticated");
+		const { cycles } = await fetchCyclesForTontine(
+			session.accessToken,
+			tontineId,
+		);
+		return cycles.map(toCycle);
+	});
 
 export async function listCycleHistory(tontineId: string): Promise<Cycle[]> {
-	const history = mockStore.cycleHistory.filter(
-		(cycle) => cycle.tontineId === tontineId,
-	);
-	return simulateNetwork(history);
-}
-
-export async function submitBid(
-	cycleId: string,
-	memberId: string,
-	amount: number,
-): Promise<Cycle> {
-	return simulateNetwork(submitBidInStore(cycleId, memberId, amount));
+	return fetchCycleHistoryFromBackend({ data: tontineId });
 }
 
 export const cycleQueries = {
-	/**
-	 * The bidding strategy's live-auction countdown is a time-sensitive view
-	 * per DESIGN.md §8 — poll it, but only when the tontine actually uses the
-	 * bidding strategy, since polling a rotating/lottery cycle every few
-	 * seconds would be wasted work.
-	 */
-	current: (tontineId: string, payoutStrategy?: PayoutStrategy) =>
+	current: (tontineId: string) =>
 		queryOptions({
 			queryKey: ["tontine", tontineId, "cycle"] as const,
 			queryFn: () => getCurrentCycle(tontineId),
-			...(payoutStrategy === "bidding"
-				? {
-						staleTime: 5_000,
-						refetchOnWindowFocus: true,
-						refetchInterval: 15_000,
-					}
-				: {}),
 		}),
 
 	history: (tontineId: string) =>

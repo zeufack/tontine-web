@@ -1,28 +1,17 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { CalendarClock } from "lucide-react";
 
 import { StrategyExplainer } from "#/components/tontine/strategy-explainer.tsx";
 import { Amount } from "#/components/ui/amount.tsx";
 import { Badge } from "#/components/ui/badge.tsx";
-import { Button } from "#/components/ui/button.tsx";
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "#/components/ui/form.tsx";
-import { Input } from "#/components/ui/input.tsx";
+import { EmptyState } from "#/components/ui/empty-state.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
 import {
 	Table,
@@ -32,12 +21,15 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table.tsx";
-import { cycleQueries, submitBid } from "#/features/cycles/api";
-import { memberQueries } from "#/features/members/api";
+import {
+	type BeneficiaryStatus,
+	type Cycle,
+	type CycleStatus,
+	cycleQueries,
+	type Turn,
+	type TurnStatus,
+} from "#/features/cycles/api";
 import { tontineQueries } from "#/features/tontines/api";
-import type { Cycle } from "#/lib/mock-data/schemas";
-import { CURRENT_USER_ID } from "#/lib/mock-data/store";
-import { cn } from "#/lib/utils.ts";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
@@ -46,287 +38,73 @@ export const Route = createFileRoute(
 	component: CyclesPage,
 });
 
-const bidFormSchema = z.object({
-	amount: z.coerce.number().positive(m.validation_required()),
-});
-type BidFormValues = z.infer<typeof bidFormSchema>;
+const CYCLE_STATUS_VARIANT: Record<
+	CycleStatus,
+	"secondary" | "success" | "outline" | "destructive"
+> = {
+	pending: "secondary",
+	active: "success",
+	completed: "outline",
+	cancelled: "destructive",
+};
 
-function formatTimeRemaining(deadlineIso: string): string {
-	const diffMs = new Date(deadlineIso).getTime() - Date.now();
-	if (diffMs <= 0) return m.bidding_time_expired();
-	const totalMinutes = Math.floor(diffMs / 60_000);
-	const hours = Math.floor(totalMinutes / 60);
-	const minutes = totalMinutes % 60;
-	return `${hours}h ${minutes}min`;
-}
+const CYCLE_STATUS_LABEL: Record<CycleStatus, () => string> = {
+	pending: m.cycle_status_pending,
+	active: m.cycle_status_active,
+	completed: m.cycle_status_completed,
+	cancelled: m.cycle_status_cancelled,
+};
 
-type RotatingState = Extract<Cycle["strategyState"], { kind: "rotating" }>;
-type LotteryState = Extract<Cycle["strategyState"], { kind: "lottery" }>;
-type BiddingState = Extract<Cycle["strategyState"], { kind: "bidding" }>;
+const TURN_STATUS_VARIANT: Record<
+	TurnStatus,
+	"secondary" | "success" | "warning" | "outline" | "destructive"
+> = {
+	scheduled: "secondary",
+	in_progress: "warning",
+	completed: "success",
+	skipped: "outline",
+	cancelled: "destructive",
+	pending_auction: "secondary",
+	auction_open: "warning",
+};
 
-function RotatingCycleView({ state }: { state: RotatingState }) {
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>{m.rotating_order_title()}</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<ol className="flex flex-col gap-2">
-					{state.order.map((entry) => {
-						const isCurrent =
-							entry.memberId === state.currentBeneficiaryMemberId;
-						return (
-							<li
-								key={entry.memberId}
-								className={cn(
-									"flex items-center justify-between rounded-lg border px-3 py-2",
-									isCurrent && "border-primary bg-primary/5",
-								)}
-							>
-								<span>{entry.name}</span>
-								{isCurrent && <Badge>{m.rotating_current_badge()}</Badge>}
-							</li>
-						);
-					})}
-				</ol>
-			</CardContent>
-		</Card>
-	);
-}
+const TURN_STATUS_LABEL: Record<TurnStatus, () => string> = {
+	scheduled: m.turn_status_scheduled,
+	in_progress: m.turn_status_in_progress,
+	completed: m.turn_status_completed,
+	skipped: m.turn_status_skipped,
+	cancelled: m.turn_status_cancelled,
+	pending_auction: m.turn_status_pending_auction,
+	auction_open: m.turn_status_auction_open,
+};
 
-function LotteryCycleView({
-	state,
-	memberName,
-}: {
-	state: LotteryState;
-	memberName: (memberId: string) => string;
-}) {
-	return (
-		<div className="flex flex-col gap-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>{m.lottery_eligibility_title()}</CardTitle>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-3">
-					<p className="text-sm text-muted-foreground">
-						{state.drawDate
-							? m.lottery_draw_date_label({
-									date: new Date(state.drawDate).toLocaleDateString(),
-								})
-							: m.lottery_draw_date_unknown()}
-					</p>
-					<div className="flex flex-wrap gap-2">
-						{state.eligibleMemberIds.map((memberId) => (
-							<Badge key={memberId} variant="outline">
-								{memberName(memberId)}
-							</Badge>
-						))}
-					</div>
-				</CardContent>
-			</Card>
+const BENEFICIARY_STATUS_VARIANT: Record<
+	BeneficiaryStatus,
+	"secondary" | "success" | "warning" | "destructive"
+> = {
+	designated: "secondary",
+	confirmed: "warning",
+	paid: "success",
+	cancelled: "destructive",
+};
 
-			<div className="flex flex-col gap-3">
-				<h3 className="text-sm font-semibold text-muted-foreground">
-					{m.lottery_past_draws_title()}
-				</h3>
-				{state.pastDraws.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
-						{m.lottery_past_draws_empty()}
-					</p>
-				) : (
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>{m.lottery_table_cycle()}</TableHead>
-								<TableHead>{m.lottery_table_winner()}</TableHead>
-								<TableHead>{m.lottery_table_date()}</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{state.pastDraws.map((draw) => (
-								<TableRow key={`${draw.cycleNumber}-${draw.winnerMemberId}`}>
-									<TableCell>{draw.cycleNumber}</TableCell>
-									<TableCell>{memberName(draw.winnerMemberId)}</TableCell>
-									<TableCell>
-										{new Date(draw.drawnAt).toLocaleDateString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				)}
-			</div>
-		</div>
-	);
-}
-
-function BiddingCycleView({
-	cycle,
-	state,
-	currency,
-	memberName,
-	onSubmitBid,
-	isSubmitting,
-}: {
-	cycle: Cycle;
-	state: BiddingState;
-	currency: string;
-	memberName: (memberId: string) => string;
-	onSubmitBid: (amount: number) => void;
-	isSubmitting: boolean;
-}) {
-	const form = useForm<BidFormValues>({
-		resolver: zodResolver(bidFormSchema),
-		defaultValues: { amount: 0 },
-	});
-
-	const discountPercent =
-		cycle.potTotal > 0 && state.currentHighestBid !== null
-			? Math.round((state.currentHighestBid / cycle.potTotal) * 100)
-			: null;
-
-	function onSubmit(values: BidFormValues) {
-		onSubmitBid(values.amount);
-		form.reset();
-	}
-
-	return (
-		<div className="flex flex-col gap-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>{m.bidding_current_bid_title()}</CardTitle>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-1">
-					{state.currentHighestBid !== null ? (
-						<>
-							<Amount
-								value={state.currentHighestBid}
-								currency={currency}
-								className="text-2xl"
-							/>
-							<p className="text-sm text-muted-foreground">
-								{m.overview_highest_bidder_label({
-									name: memberName(state.currentHighestBidderMemberId ?? ""),
-								})}
-							</p>
-							{discountPercent !== null && (
-								<p className="text-sm text-muted-foreground">
-									{m.bidding_discount_label({ percent: discountPercent })}
-								</p>
-							)}
-						</>
-					) : (
-						<p className="text-sm text-muted-foreground">
-							{m.bidding_no_bids_label()}
-						</p>
-					)}
-					<p className="text-sm font-medium">
-						{m.bidding_time_remaining_label({
-							time: formatTimeRemaining(state.deadline),
-						})}
-					</p>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>{m.bidding_bid_form_title()}</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<Form {...form}>
-						<form
-							onSubmit={form.handleSubmit(onSubmit)}
-							className="flex items-end gap-3"
-						>
-							<FormField
-								control={form.control}
-								name="amount"
-								render={({ field }) => (
-									<FormItem className="flex-1">
-										<FormLabel>{m.bidding_bid_amount_label()}</FormLabel>
-										<FormControl>
-											<Input type="number" min="0" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<Button type="submit" disabled={isSubmitting}>
-								{m.bidding_submit_cta()}
-							</Button>
-						</form>
-					</Form>
-				</CardContent>
-			</Card>
-
-			<div className="flex flex-col gap-3">
-				<h3 className="text-sm font-semibold text-muted-foreground">
-					{m.bidding_history_title()}
-				</h3>
-				{state.history.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
-						{m.bidding_history_empty()}
-					</p>
-				) : (
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>{m.bidding_table_member()}</TableHead>
-								<TableHead>{m.bidding_table_amount()}</TableHead>
-								<TableHead>{m.bidding_table_date()}</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{[...state.history].reverse().map((bid) => (
-								<TableRow key={`${bid.memberId}-${bid.submittedAt}`}>
-									<TableCell>{memberName(bid.memberId)}</TableCell>
-									<TableCell>
-										<Amount value={bid.amount} currency={currency} />
-									</TableCell>
-									<TableCell>
-										{new Date(bid.submittedAt).toLocaleString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				)}
-			</div>
-		</div>
-	);
-}
+const BENEFICIARY_STATUS_LABEL: Record<BeneficiaryStatus, () => string> = {
+	designated: m.beneficiary_status_designated,
+	confirmed: m.beneficiary_status_confirmed,
+	paid: m.beneficiary_status_paid,
+	cancelled: m.beneficiary_status_cancelled,
+};
 
 function CyclesPage() {
 	const { tontineId } = Route.useParams();
-	const queryClient = useQueryClient();
 
 	const { data: tontine } = useQuery(tontineQueries.detail(tontineId));
-	const { data: cycle } = useQuery(
-		cycleQueries.current(tontineId, tontine?.payoutStrategy),
+	const { data: currentCycle, isPending: isCurrentPending } = useQuery(
+		cycleQueries.current(tontineId),
 	);
 	const { data: cycleHistory } = useQuery(cycleQueries.history(tontineId));
-	const { data: members } = useQuery(memberQueries.list(tontineId));
 
-	function memberName(memberId: string): string {
-		return members?.find((member) => member.id === memberId)?.name ?? memberId;
-	}
-
-	const bidMutation = useMutation({
-		mutationFn: (amount: number) => {
-			if (!cycle) throw new Error("No active cycle to bid on");
-			return submitBid(cycle.id, CURRENT_USER_ID, amount);
-		},
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({
-					queryKey: ["tontine", tontineId, "cycle"],
-				}),
-				queryClient.invalidateQueries({ queryKey: ["tontines", "mine"] }),
-			]);
-		},
-	});
-
-	if (!tontine || !cycle) {
+	if (!tontine || isCurrentPending) {
 		return (
 			<div className="flex flex-col gap-4">
 				<Skeleton className="h-24" />
@@ -342,20 +120,17 @@ function CyclesPage() {
 				<StrategyExplainer strategy={tontine.payoutStrategy} />
 			</div>
 
-			{cycle.strategyState.kind === "rotating" && (
-				<RotatingCycleView state={cycle.strategyState} />
-			)}
-			{cycle.strategyState.kind === "lottery" && (
-				<LotteryCycleView state={cycle.strategyState} memberName={memberName} />
-			)}
-			{cycle.strategyState.kind === "bidding" && (
-				<BiddingCycleView
-					cycle={cycle}
-					state={cycle.strategyState}
+			{!currentCycle?.cycle ? (
+				<EmptyState
+					icon={CalendarClock}
+					title={m.cycles_no_active_cycle_title()}
+					description={m.cycles_no_active_cycle_description()}
+				/>
+			) : (
+				<CurrentCycleSection
+					cycle={currentCycle.cycle}
+					turns={currentCycle.turns}
 					currency={tontine.currency}
-					memberName={memberName}
-					onSubmitBid={(amount) => bidMutation.mutate(amount)}
-					isSubmitting={bidMutation.isPending}
 				/>
 			)}
 
@@ -372,36 +147,122 @@ function CyclesPage() {
 						<TableHeader>
 							<TableRow>
 								<TableHead>{m.cycles_table_number()}</TableHead>
-								<TableHead>{m.cycles_table_pot()}</TableHead>
 								<TableHead>{m.cycles_table_status()}</TableHead>
+								<TableHead>{m.cycles_table_total_contributed()}</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{cycleHistory.map((historyCycle) => (
 								<TableRow key={historyCycle.id}>
-									<TableCell>{historyCycle.number}</TableCell>
+									<TableCell>{historyCycle.cycleNumber}</TableCell>
 									<TableCell>
-										<Amount
-											value={historyCycle.potTotal}
-											currency={tontine.currency}
-										/>
+										<Badge variant={CYCLE_STATUS_VARIANT[historyCycle.status]}>
+											{CYCLE_STATUS_LABEL[historyCycle.status]()}
+										</Badge>
 									</TableCell>
 									<TableCell>
-										<Badge
-											variant={
-												historyCycle.status === "active" ? "success" : "outline"
-											}
-										>
-											{historyCycle.status === "active"
-												? m.cycle_status_active()
-												: m.cycle_status_closed()}
-										</Badge>
+										<Amount
+											value={historyCycle.totalContributions}
+											currency={tontine.currency}
+										/>
 									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
 					</Table>
 				)}
+			</div>
+		</div>
+	);
+}
+
+function CurrentCycleSection({
+	cycle,
+	turns,
+	currency,
+}: {
+	cycle: Cycle;
+	turns: Turn[];
+	currency: string;
+}) {
+	return (
+		<div className="flex flex-col gap-6">
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-sm text-muted-foreground">
+							{m.cycles_current_cycle_label({ number: cycle.cycleNumber })}
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<Badge variant={CYCLE_STATUS_VARIANT[cycle.status]}>
+							{CYCLE_STATUS_LABEL[cycle.status]()}
+						</Badge>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-sm text-muted-foreground">
+							{m.cycles_stats_completion_label()}
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="text-2xl font-semibold">
+							{Math.round(cycle.completionPercentage)}%
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+
+			<div className="flex flex-col gap-3">
+				<h3 className="text-sm font-semibold text-muted-foreground">
+					{m.cycles_schedule_title()}
+				</h3>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>{m.cycles_table_turn()}</TableHead>
+							<TableHead>{m.cycles_table_participant()}</TableHead>
+							<TableHead>{m.cycles_table_scheduled_date()}</TableHead>
+							<TableHead>{m.cycles_table_status()}</TableHead>
+							<TableHead>{m.cycles_table_contribution()}</TableHead>
+							<TableHead>{m.cycles_table_beneficiary_status()}</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{turns.map((turn) => (
+							<TableRow key={turn.id}>
+								<TableCell>{turn.turnNumber}</TableCell>
+								<TableCell>{turn.participantName ?? "—"}</TableCell>
+								<TableCell>
+									{new Date(turn.scheduledDate).toLocaleDateString()}
+								</TableCell>
+								<TableCell>
+									<Badge variant={TURN_STATUS_VARIANT[turn.status]}>
+										{TURN_STATUS_LABEL[turn.status]()}
+									</Badge>
+								</TableCell>
+								<TableCell>
+									<Amount value={turn.contributionAmount} currency={currency} />
+								</TableCell>
+								<TableCell>
+									{turn.beneficiaryStatus ? (
+										<Badge
+											variant={
+												BENEFICIARY_STATUS_VARIANT[turn.beneficiaryStatus]
+											}
+										>
+											{BENEFICIARY_STATUS_LABEL[turn.beneficiaryStatus]()}
+										</Badge>
+									) : (
+										"—"
+									)}
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
 			</div>
 		</div>
 	);
